@@ -20,9 +20,13 @@ jobs:
 
       - name: Bump version and push tag
         run: |
-          tag=$(echo ${{ github.event.pull_request.title }} | sed -n 's/^.*\(v[^[:space:]*\).*/\1/p')
+          tag=$(echo ${{ github.event.pull_request.title }} | sed -n 's/^.*\(v[^[:space:]]*\).*/\1/p')
           echo "tag=${tag}"
           git config user.name github-actions
           git config user.email github-actions@github.com
           git tag -f $tag
+          git tag -f ${tag%.*}
+          if [ ${tag%.*.*} != "v0" ]; then
+            git tag -f ${tag%.*.*}
+          fi
           git push -f --tags origin ${{ github.ref_name }}:${{ inputs.branch }}
