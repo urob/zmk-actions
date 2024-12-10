@@ -21,7 +21,7 @@ jobs:
       - name: Find test directories
         working-directory: ${{ inputs.tests_path }}
         run: |
-          test_cases=$(find * -name native_posix_64.keymap -exec dirname \{\} \; | sed "s#^\./##" | jq -R -s -c 'split("\n")[:-1]')
+          test_cases=$(find -name native_posix_64.keymap -exec dirname \{\} \; | sed "s#^\./##" | jq -R -s -c 'split("\n")[:-1]')
           echo "test_cases=${test_cases}" >> $GITHUB_ENV
           jq <<< ${test_cases}
 
