@@ -1,4 +1,4 @@
-name: Upgrade to latest ZMK version
+name: Check for new ZMK releases
 
 on:
   workflow_call:

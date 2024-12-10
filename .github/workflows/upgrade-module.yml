@@ -1,9 +1,9 @@
-name: Bump version
+name: Create a new module release
 on:
   workflow_call:
     inputs:
-      branch:
-        description: "Branch to push the tag to"
+      release_branch:
+        description: "Branch to create the release from"
         default: "main"
         required: false
         type: string
@@ -29,4 +29,4 @@ jobs:
           if [ ${tag%.*.*} != "v0" ]; then
             git tag -f ${tag%.*.*}
           fi
-          git push -f --tags origin ${{ github.ref_name }}:${{ inputs.branch }}
+          git push -f --tags origin ${{ github.ref_name }}:${{ inputs.release_branch }}

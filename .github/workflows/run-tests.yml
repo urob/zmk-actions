@@ -1,4 +1,4 @@
-name: Reusable module tests
+name: Run module tests
 
 on:
   workflow_call:
