@@ -34,8 +34,7 @@ jobs:
       matrix:
         test: ${{ fromJSON(needs.collect-tests.outputs.test_cases) }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Create build directory
         run: |

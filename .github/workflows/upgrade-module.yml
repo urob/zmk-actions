@@ -1,4 +1,5 @@
 name: Create a new module release
+
 on:
   workflow_call:
     inputs:
@@ -8,15 +9,15 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: write
+
 jobs:
-  bump-version:
+  release:
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'Bump ZMK')
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Bump version and push tag
         run: |

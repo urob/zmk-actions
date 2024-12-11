@@ -68,11 +68,11 @@ on:
   schedule:
     - cron: "0 22 * * *" # Run daily at 22:00 UTC
 jobs:
-  build:
+  upgrade-zmk:
     uses: urob/zmk-modules-actions/.github/workflows/upgrade-zmk.yml@main
+    secrets: inherit
     permissions:
       contents: write
-    secrets: inherit
 ```
 
 The workflow supports the following optional input parameters:
@@ -102,7 +102,7 @@ on:
       - "src/**"
       - "include/**"
 jobs:
-  build:
+  test:
     uses: urob/zmk-modules-actions/.github/workflows/run-tests.yml@main
 ```
 
@@ -125,10 +125,10 @@ on:
     branches:
       - main
 jobs:
-  build:
+  release:
+    uses: urob/zmk-modules-actions/.github/workflows/upgrade-module.yml@main
     permissions:
       contents: write
-    uses: urob/zmk-modules-actions/.github/workflows/upgrade-module.yml@main
 ```
 
 The workflow supports the following optional input parameters:
