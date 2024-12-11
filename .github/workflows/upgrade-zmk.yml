@@ -24,12 +24,6 @@ on:
         required: false
         type: string
 
-env:
-  upstream: zmkfirmware/zmk
-  west_path: tests/west.yml
-  pr_branch: upgrade-zmk
-  upgrade-label: "bump-zmk"
-
 jobs:
   upgrade-zmk:
     name: Upgrade ZMK & open PR
