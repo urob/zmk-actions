@@ -78,7 +78,7 @@ jobs:
 The workflow supports the following optional input parameters:
 
 - `upstream` - The upstream ZMK repository to check for new releases. Defaults to `zmkfirmware/zmk`.
-- `tests_path` - The path to the tests directory. Defaults to `tests`.
+- `west_path` - The path to the `west` manifest that defines the test environment. Defaults to `tests/west.yml`.
 - `pr_branch` - The branch to create PRs in. Defaults to `upgrade-zmk`.
 - `pr_label` - A label to add to PRs. Defaults to none.
 
