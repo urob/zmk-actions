@@ -58,7 +58,7 @@ jobs:
       - name: Open pull request if needed
         if: steps.changes.outputs.count > 0
         run: |
-          echo "${{ secrets.ACTIONS_UPGRADE_ZMK }}" | gh auth login --with-token
+          echo "${{ secrets.ZMK_MODULES_ACTIONS }}" | gh auth login --with-token
           # Only open a new PR if the branch is not attached to an existing one. Needs a PAT with read access to
           # metadata, and read & write acess to actions and pull requests.
           PR=$(gh pr list --head ${{ inputs.pr_branch }} --json number -q '.[0].number')

@@ -138,7 +138,7 @@ The workflow supports the following optional input parameters:
 ### 3. Create a Personal Access Token
 
 The `upgrade-zmk` workflow requires a Personal Access Token with write access to actions and pull
-requests.[^1] The token should be stored as a repository secret named `ACTIONS_UPGRADE_ZMK`. The
+requests.[^1] The token should be stored as a repository secret named `ZMK_MODULES_ACTIONS`. The
 following steps outline how to create the token:
 
 1. Go to your GitHub account settings.
@@ -149,7 +149,7 @@ following steps outline how to create the token:
 4. Copy the token and store it in a secure location.
 5. Go to the repository where you want to use the token.
 6. Go to 'Action secrets and variables' in the repository settings.
-7. Add a new repository secret with the name `ACTIONS_UPGRADE_ZMK`.
+7. Add a new repository secret with the name `ZMK_MODULES_ACTIONS`.
 8. Set the secret value to the token you created in steps 1-4.
 
 [^1]:
