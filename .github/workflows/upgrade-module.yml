@@ -23,7 +23,7 @@ jobs:
           tag=$(echo ${{ github.event.pull_request.title }} | sed -n 's/^.*\(v[^[:space:]]*\).*/\1/p')
           git tag -f $tag
           git tag -f ${tag%.*}
-          if [ ${tag%.*.*} != "v0" ]; then
-            git tag -f ${tag%.*.*}
+          if [ ${tag%%.*} != "v0" ]; then
+            git tag -f ${tag%%.*}
           fi
           git push -f --tags origin ${{ github.ref_name }}:${{ inputs.release_branch }}
