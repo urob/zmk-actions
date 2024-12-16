@@ -18,13 +18,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
       - name: Bump version and push tag
         run: |
           tag=$(echo ${{ github.event.pull_request.title }} | sed -n 's/^.*\(v[^[:space:]]*\).*/\1/p')
-          echo "tag=${tag}"
-          git config user.name github-actions
-          git config user.email github-actions@github.com
           git tag -f $tag
           git tag -f ${tag%.*}
           if [ ${tag%.*.*} != "v0" ]; then
