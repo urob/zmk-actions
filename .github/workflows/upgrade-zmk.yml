@@ -2,9 +2,6 @@ name: Check for new ZMK releases
 
 on:
   workflow_call:
-    secrets:
-      token:
-        required: true
     inputs:
       upstream:
         description: "Upstream repository to track"
@@ -26,6 +23,9 @@ on:
         type: string
         required: false
         default: ""
+    secrets:
+      token:
+        required: true
 
 jobs:
   upgrade-zmk:
@@ -35,12 +35,14 @@ jobs:
 
       - name: Get latest ZMK release
         run: |
-          ZMK_VERSION=$(curl -s https://api.github.com/repos/${{ inputs.upstream }}/releases/latest | jq -r '.tag_name')
+          ZMK_VERSION=$(curl -s https://api.github.com/repos/${{ inputs.upstream }}/releases/latest |
+            jq -r '.tag_name')
           echo "ZMK_VERSION=${ZMK_VERSION}" >> $GITHUB_ENV
 
-      - name: Upgrade test dependencies
+      - name: Bump test dependencies
         run: |
-          yq e -i '(.manifest.projects[] | select(.name=="zmk") | .revision) = env(ZMK_VERSION)' ${{ inputs.west_path }}
+          yq e -i '(.manifest.projects[] | select(.name=="zmk") | .revision) = env(ZMK_VERSION)' \
+            ${{ inputs.west_path }}
 
       - name: Detect changes
         id: changes
@@ -60,13 +62,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.token }}
         run: |
-          # Only open a new PR if the branch is not attached to an existing one. Needs a PAT with read access to
-          # metadata, and read & write acess to actions and pull requests.
+          # Only open a new PR if the branch is not attached to an existing one. Needs a PAT with
+          # read access to metadata, and read & write access to pull requests.
           PR=$(gh pr list --head ${{ inputs.pr_branch }} --json number -q '.[0].number')
           if [ -z $PR ]; then
             pr_label=${{ inputs.pr_label }}
-            gh pr create --head ${{ inputs.pr_branch }} --title "Bump ZMK to ${ZMK_VERSION}" ${pr_label:+--label "$pr_label"} \
-              --body "Full log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            gh pr create --head ${{ inputs.pr_branch }} --title "Bump ZMK to ${ZMK_VERSION}" \
+              ${pr_label:+--label "$pr_label"} --body \
+              "Full log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
             echo "Pull request already exists, won't create a new one."
           fi

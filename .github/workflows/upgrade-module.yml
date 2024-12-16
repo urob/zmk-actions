@@ -5,9 +5,9 @@ on:
     inputs:
       release_branch:
         description: "Branch to create the release from"
-        default: "main"
-        required: false
         type: string
+        required: false
+        default: "main"
 
 permissions:
   contents: write

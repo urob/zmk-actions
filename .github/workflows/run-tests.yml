@@ -5,9 +5,9 @@ on:
     inputs:
       tests_path:
         description: "Path to the tests directory"
-        default: "tests"
-        required: false
         type: string
+        required: false
+        default: "tests"
 
 jobs:
   collect-tests:
@@ -21,7 +21,8 @@ jobs:
       - name: Find test directories
         working-directory: ${{ inputs.tests_path }}
         run: |
-          test_cases=$(find -name native_posix_64.keymap -exec dirname \{\} \; | sed "s#^\./##" | jq -R -s -c 'split("\n")[:-1]')
+          test_cases=$(find -name native_posix_64.keymap -exec dirname \{\} \; | sed "s#^\./##" |
+            jq -R -s -c 'split("\n")[:-1]')
           echo "test_cases=${test_cases}" >> $GITHUB_ENV
           jq <<< ${test_cases}
 
@@ -102,7 +103,6 @@ jobs:
                   echo "PENDING: ${{ matrix.test }}" | tee -a ${out}/pass-fail.log
                   exit 0
               fi
-
               echo "FAILED: ${{ matrix.test }}" | tee -a ${out}/pass-fail.log
               exit 1
           fi
