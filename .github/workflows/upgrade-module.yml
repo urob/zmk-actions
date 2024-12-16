@@ -15,7 +15,7 @@ permissions:
 jobs:
   release:
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'Bump ZMK')
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Bump version and push tag
