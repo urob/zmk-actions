@@ -52,9 +52,9 @@ of the `urob/zmk-leader-key` module.
 
 ### 2. Add workflows to your repository
 
-In most cases, it should suffice to copy the `zmk-leader-key`'s contents of
-[`.github/workflows`](https://github.com/urob/zmk-leader-key/tree/main/.github/workflows) to your
-repository. The following provides some additional pointers.
+In most cases, it should suffice to copy the contents of
+[`templates`](https://github.com/urob/zmk-modules-actions/tree/main/templates) to your repository.
+The following provides a more detailed explanation of each workflow recipe.
 
 #### 2a/ `upgrade-zmk`
 
@@ -69,16 +69,19 @@ on:
     - cron: "0 22 * * *" # Run daily at 22:00 UTC
 jobs:
   upgrade-zmk:
-    uses: urob/zmk-modules-actions/.github/workflows/upgrade-zmk.yml@main
-    secrets: inherit
+    uses: urob/zmk-modules-actions/.github/workflows/upgrade-zmk.yml@v1
     permissions:
       contents: write
+    secrets:
+      # >>> Add a Personal Access Token with write access to pull requests here <<<
+      token: ${{ secrets.ZMK_MODULES_ACTIONS }}
 ```
 
 The workflow supports the following optional input parameters:
 
 - `upstream` - The upstream ZMK repository to check for new releases. Defaults to `zmkfirmware/zmk`.
-- `west_path` - The path to the `west` manifest that defines the test environment. Defaults to `tests/west.yml`.
+- `west_path` - The path to the `west` manifest that defines the test environment. Defaults to
+  `tests/west.yml`.
 - `pr_branch` - The branch to create PRs in. Defaults to `upgrade-zmk`.
 - `pr_label` - A label to add to PRs. Defaults to none.
 
@@ -93,17 +96,19 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "tests/**"
-      - "src/**"
+      - "dts/**"
       - "include/**"
+      - "src/**"
+      - "tests/**"
   pull_request:
     paths:
-      - "tests/**"
-      - "src/**"
+      - "dts/**"
       - "include/**"
+      - "src/**"
+      - "tests/**"
 jobs:
   test:
-    uses: urob/zmk-modules-actions/.github/workflows/run-tests.yml@main
+    uses: urob/zmk-modules-actions/.github/workflows/run-tests.yml@v1
 ```
 
 The workflow supports the following optional input parameters:
@@ -117,7 +122,7 @@ only create a new release if the pull request title starts with `Bump ZMK`. So t
 on all merges.
 
 ```yaml
-name: Create new module release
+name: Release module version
 on:
   pull_request:
     types:
@@ -126,7 +131,7 @@ on:
       - main
 jobs:
   release:
-    uses: urob/zmk-modules-actions/.github/workflows/upgrade-module.yml@main
+    uses: urob/zmk-modules-actions/.github/workflows/upgrade-module.yml@v1
     permissions:
       contents: write
 ```
@@ -137,19 +142,18 @@ The workflow supports the following optional input parameters:
 
 ### 3. Create a Personal Access Token
 
-The `upgrade-zmk` workflow requires a Personal Access Token with write access to actions and pull
-requests.[^1] The token should be stored as a repository secret named `ZMK_MODULES_ACTIONS`. The
-following steps outline how to create the token:
+The `upgrade-zmk` workflow requires a Personal Access Token with write access to pull requests.[^1]
+The following steps outline how to create the token:
 
 1. Go to your GitHub account settings.
-2. Create a new Personal Access token under Developer settings.
+2. Create a new Personal Access token under Developer settings. (The name doesn't matter.)
 3. Configure the token to have the following repository permissions:
    - Read access to metadata
-   - Read & write access to actions and pull requests
+   - Write access to pull requests
 4. Copy the token and store it in a secure location.
 5. Go to the repository where you want to use the token.
 6. Go to 'Action secrets and variables' in the repository settings.
-7. Add a new repository secret with the name `ZMK_MODULES_ACTIONS`.
+7. Add a new repository secret with the same name as passed to `upgrade-zmk` in step 2a/ above.
 8. Set the secret value to the token you created in steps 1-4.
 
 [^1]:
