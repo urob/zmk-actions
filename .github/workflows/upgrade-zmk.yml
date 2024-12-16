@@ -2,30 +2,30 @@ name: Check for new ZMK releases
 
 on:
   workflow_call:
+    secrets:
+      token:
+        required: true
     inputs:
       upstream:
         description: "Upstream repository to track"
-        default: "zmkfirmware/zmk"
-        required: false
         type: string
+        required: false
+        default: "zmkfirmware/zmk"
       west_path:
         description: "Path to the west.yml file"
-        default: "tests/west.yml"
-        required: false
         type: string
+        required: false
+        default: "tests/west.yml"
       pr_branch:
         description: "Branch to push the PR to"
-        default: "upgrade-zmk"
-        required: false
         type: string
+        required: false
+        default: "upgrade-zmk"
       pr_label:
         description: "Label to add to the PR"
-        default: ""
-        required: false
         type: string
-
-permissions:
-  contents: write
+        required: false
+        default: ""
 
 jobs:
   upgrade-zmk:
@@ -57,8 +57,9 @@ jobs:
 
       - name: Open pull request if needed
         if: steps.changes.outputs.count > 0
+        env:
+          GH_TOKEN: ${{ secrets.token }}
         run: |
-          echo "${{ secrets.ZMK_MODULES_ACTIONS }}" | gh auth login --with-token
           # Only open a new PR if the branch is not attached to an existing one. Needs a PAT with read access to
           # metadata, and read & write acess to actions and pull requests.
           PR=$(gh pr list --head ${{ inputs.pr_branch }} --json number -q '.[0].number')
