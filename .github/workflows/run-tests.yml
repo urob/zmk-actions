@@ -37,16 +37,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create build directory
+      - name: Prepare workspace
         run: |
+          # Create a temporary directory for the build. And copy test cases to an isolated
+          # temporary directory so we can link the module from the repository root.
           echo "build_dir=$(mktemp -d)" >> $GITHUB_ENV
-
-      - name: Copy test files to isolated temporary directory
-        run: |
-          base_dir="${TMPDIR:-/tmp}/zmk-module-tests"
+          base_dir="${TMPDIR:-/tmp}/zmk-tests" && echo "base_dir=${base_dir}" >> $GITHUB_ENV
           mkdir -p "${base_dir}/${{ inputs.tests_path }}"
           cp -R ${{ inputs.tests_path }}/* "${base_dir}/${{ inputs.tests_path }}/"
-          echo "base_dir=${base_dir}" >> $GITHUB_ENV
 
       - name: Cache west modules
         uses: actions/cache@v4
@@ -61,25 +59,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-zephyr-
 
-      - name: Initialize workspace (west init)
+      - name: Prepare build environment
         working-directory: ${{ env.base_dir }}
-        run: west init -l "${{ env.base_dir }}/${{ inputs.tests_path }}"
-
-      - name: Update modules (west update)
-        working-directory: ${{ env.base_dir }}
-        run: west update
-
-      - name: Export Zephyr CMake package (west zephyr-export)
-        working-directory: ${{ env.base_dir }}
-        run: west zephyr-export
+        run: |
+          west init -l "${{ inputs.tests_path }}" # Initialize the workspace
+          west update                             # Update modules
+          west zephyr-export                      # Export the Zephyr CMake package
 
       - name: West Build (${{ matrix.test }})
         working-directory: ${{ env.base_dir }}
         env:
-          config_dir: ${{ env.base_dir }}/${{ inputs.tests_path }}/${{ matrix.test }}
+          test: ${{ env.base_dir }}/${{ inputs.tests_path }}/${{ matrix.test }}
         run:
           west build -s zmk/app -d "${{ env.build_dir }}" -b native_posix_64 -- \
-            -DCONFIG_ASSERT=y -DZMK_CONFIG="${config_dir}" -DZMK_EXTRA_MODULES="${GITHUB_WORKSPACE}"
+            -DCONFIG_ASSERT=y -DZMK_CONFIG="${test}" -DZMK_EXTRA_MODULES="${GITHUB_WORKSPACE}"
 
       - name: Test
         working-directory: ${{ env.base_dir }}
