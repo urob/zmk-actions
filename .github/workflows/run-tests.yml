@@ -50,9 +50,6 @@ jobs:
 
       - name: Cache west modules
         uses: actions/cache@v4
-        continue-on-error: true
-        env:
-          cache-name: cache-zephyr-modules
         with:
           path: |
             ${{ env.base_dir }}/modules/
@@ -60,13 +57,9 @@ jobs:
             ${{ env.base_dir }}/zephyr/
             ${{ env.base_dir }}/bootloader/
             ${{ env.base_dir }}/zmk/
-          key:
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{
-            hashFiles('**/west.yml') }}
+          key: ${{ runner.os }}-zephyr-${{ hashFiles('**/west.yml') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ runner.os }}-zephyr-
 
       - name: Initialize workspace (west init)
         working-directory: ${{ env.base_dir }}
