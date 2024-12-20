@@ -2,6 +2,15 @@ name: Run tests
 description: Run tests
 
 inputs:
+  build_cmd_prefix:
+    description: "Prefix for the build command"
+    type: string
+    required: false
+  artefact_name:
+    description: "Name of the uploaded archive"
+    type: string
+    required: false
+    default: "log-files"
   test_dir:
     description: "Path to test cases to run"
     type: string
@@ -23,6 +32,10 @@ inputs:
     type: string
     required: false
     default: "zmk/app"
+  verbose:
+    description: "Show detailed build logs"
+    type: boolean
+    required: false
 
 outputs:
   success:
@@ -39,10 +52,10 @@ runs:
         ZMK_SRC_DIR: ${{ inputs.zmk_src_dir }}
         ZMK_BUILD_DIR: ${{ inputs.build_dir }}
         ZMK_EXTRA_MODULES: ${{ inputs.repo_is_module && github.workspace }}
-        # ZMK_TESTS_VERBOSE: 'true'
+        ZMK_TESTS_VERBOSE: ${{ inputs.verbose && 'true' }}
       shell: bash
       run: |
-        (${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test_dir }})
+        (${{ inputs.build_cmd_prefix }} ${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test_dir }})
         if [ $? -eq 0 ]; then
           echo "success=true" >> $GITHUB_OUTPUT
           exit 0
@@ -55,5 +68,5 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: "log-files"
+        name: ${{ inputs.artefact_name }}
         path: ${{ inputs.build_dir }}/**/*.log
