@@ -10,94 +10,52 @@ on:
         default: "tests"
 
 jobs:
-  collect-tests:
-    outputs:
-      test_cases: ${{ env.test_cases }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Find test directories
-        working-directory: ${{ inputs.tests_path }}
-        run: |
-          test_cases=$(find -name native_posix_64.keymap -exec dirname \{\} \; | sed "s#^\./##" |
-            jq -R -s -c 'split("\n")[:-1]')
-          echo "test_cases=${test_cases}" >> $GITHUB_ENV
-          jq <<< ${test_cases}
-
   run-tests:
     runs-on: ubuntu-latest
     container:
       image: docker.io/zmkfirmware/zmk-build-arm:3.5
-    needs: collect-tests
-    strategy:
-      matrix:
-        test: ${{ fromJSON(needs.collect-tests.outputs.test_cases) }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Prepare workspace
         run: |
-          # Create a temporary directory for the build. And copy test cases to an isolated
-          # temporary directory so we can link the module from the repository root.
-          echo "build_dir=$(mktemp -d)" >> $GITHUB_ENV
-          base_dir="${TMPDIR:-/tmp}/zmk-tests" && echo "base_dir=${base_dir}" >> $GITHUB_ENV
-          mkdir -p "${base_dir}/${{ inputs.tests_path }}"
-          cp -R ${{ inputs.tests_path }}/* "${base_dir}/${{ inputs.tests_path }}/"
+          echo "ZEPHYR_VERSION=${ZEPHYR_VERSION}" >> $GITHUB_ENV
+          echo "ZMK_BUILD_DIR=$(mktemp -d)" >> $GITHUB_ENV
+          workspace="${TMPDIR:-/tmp}/zmk-tests" && echo "ZMK_WORKSPACE=${workspace}" >> $GITHUB_ENV
+          mkdir -p "${workspace}/${{ inputs.tests_path }}"
+          cp -R ${{ inputs.tests_path }}/* "${workspace}/${{ inputs.tests_path }}/"
 
       - name: Cache west modules
         uses: actions/cache@v4
         with:
           path: |
-            ${{ env.base_dir }}/modules/
-            ${{ env.base_dir }}/tools/
-            ${{ env.base_dir }}/zephyr/
-            ${{ env.base_dir }}/bootloader/
-            ${{ env.base_dir }}/zmk/
-          key: ${{ runner.os }}-zephyr-${{ hashFiles('**/west.yml') }}
+            ${{ env.ZMK_WORKSPACE }}/modules/
+            ${{ env.ZMK_WORKSPACE }}/tools/
+            ${{ env.ZMK_WORKSPACE }}/zephyr/
+            ${{ env.ZMK_WORKSPACE }}/bootloader/
+            ${{ env.ZMK_WORKSPACE }}/zmk/
+          key: zephyr-${{ env.ZEPHYR_VERSION }}-${{ hashFiles('**/west.yml') }}
           restore-keys: |
-            ${{ runner.os }}-zephyr-
+            zephyr-${{ env.ZEPHYR_VERSION }}-
+            zephyr-
 
-      - name: Prepare build environment
-        working-directory: ${{ env.base_dir }}
+      - name: Pull in Zephyr modules
+        working-directory: ${{ env.ZMK_WORKSPACE }}
         run: |
-          west init -l "${{ inputs.tests_path }}" # Initialize the workspace
-          west update                             # Update modules
-          west zephyr-export                      # Export the Zephyr CMake package
-
-      - name: West Build (${{ matrix.test }})
-        working-directory: ${{ env.base_dir }}
-        env:
-          test: ${{ env.base_dir }}/${{ inputs.tests_path }}/${{ matrix.test }}
-        run:
-          west build -s zmk/app -d "${{ env.build_dir }}" -b native_posix_64 -- \
-            -DCONFIG_ASSERT=y -DZMK_CONFIG="${test}" -DZMK_EXTRA_MODULES="${GITHUB_WORKSPACE}"
+          west init -l "${{ inputs.tests_path }}"
+          west update
+          west zephyr-export
 
       - name: Test
-        working-directory: ${{ env.base_dir }}
-        env:
-          in: ${{ inputs.tests_path }}/${{ matrix.test }}
-          out: ${{ env.build_dir }}
-        run: |
-          ${out}/zephyr/zmk.exe | sed -e "s/.*> //" |
-            tee ${out}/keycode_events_full.log |
-            sed -n -f ${in}/events.patterns > ${out}/keycode_events.log
-          diff -auZ ${in}/keycode_events.snapshot ${out}/keycode_events.log
-          if [ $? -gt 0 ]; then
-              if [ -f ${in}/pending ]; then
-                  echo "PENDING: ${{ matrix.test }}" | tee -a ${out}/pass-fail.log
-                  exit 0
-              fi
-              echo "FAILED: ${{ matrix.test }}" | tee -a ${out}/pass-fail.log
-              exit 1
-          fi
-          echo "PASS: ${{ matrix.test }}" | tee -a ${out}/pass-fail.log
-          exit 0
-
-      - name: Archive artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        id: test
+        uses: urob/zmk-modules-actions/.github/actions/test@feat/reuse-build-steps
         with:
-          name: "${{ matrix.test }}-log-files"
-          path: ${{ env.build_dir }}/**/*.log
+          workspace: ${{ env.ZMK_WORKSPACE }}
+          build_dir: ${{ env.ZMK_BUILD_DIR }}
+          repo_is_module: true
+          test_dir: ${{ inputs.tests_path }}
+
+      - name: Diagnostics
+        if: always()
+        run: |
+          echo "${{ steps.test.outputs.success }}"

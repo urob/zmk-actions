@@ -1,0 +1,59 @@
+name: Run tests
+description: Run tests
+
+inputs:
+  test_dir:
+    description: "Path to test cases to run"
+    type: string
+    required: true
+  workspace:
+    description: "Path to the test workspace"
+    type: string
+    required: true
+  build_dir:
+    description: "Path to the build directory"
+    type: string
+    required: true
+  repo_is_module:
+    description: "Whether the repo is a ZMK module"
+    type: boolean
+    required: false
+  zmk_src_dir:
+    description: "Path to the ZMK app directory"
+    type: string
+    required: false
+    default: "zmk/app"
+
+outputs:
+  success:
+    description: "Whether the tests passed"
+    value: ${{ steps.test.outputs.success }}
+
+runs:
+  using: composite
+  steps:
+    - name: Test
+      id: test
+      working-directory: ${{ inputs.workspace }}
+      env:
+        ZMK_SRC_DIR: ${{ inputs.zmk_src_dir }}
+        ZMK_BUILD_DIR: ${{ inputs.build_dir }}
+        ZMK_EXTRA_MODULES: ${{ inputs.repo_is_module && github.workspace }}
+        # ZMK_TESTS_VERBOSE: 'true'
+      shell: bash
+      run: |
+        (${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test_dir }})
+        if [ $? -eq 0 ]; then
+          echo "success=true" >> $GITHUB_OUTPUT
+          exit 0
+        else
+          echo "success=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: Archive logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: "log-files"
+        path: ${{ inputs.build_dir }}/**/*.log
