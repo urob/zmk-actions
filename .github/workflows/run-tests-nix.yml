@@ -1,0 +1,43 @@
+name: Run module tests
+
+on:
+  workflow_call:
+    inputs:
+      test_dir:
+        description: "Path to the tests directory"
+        type: string
+        required: false
+        default: "tests"
+      verbose:
+        description: "Show detailed build logs"
+        type: boolean
+        required: false
+      always-update-west:
+        description: "Run west update on cache hits"
+        type: boolean
+        required: false
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up test environment
+        uses: urob/zmk-modules-actions/.github/actions/setup-build-env@feat/reuse-build-steps
+        id: setup
+        with:
+          config: ${{ inputs.test_dir }}
+          always-update-west: ${{ inputs.always-update-west }}
+
+      - name: Test
+        id: test
+        uses: urob/zmk-modules-actions/.github/actions/test@feat/reuse-build-steps
+        with:
+          verbose: ${{ inputs.verbose }}
+          test_dir: ${{ inputs.test_dir }}
+          build_cmd_prefix: ${{ steps.setup.outputs.build_cmd_prefix }}
+          build_dir: ${{ steps.setup.outputs.ZMK_BUILD_DIR }}
+          workspace: ${{ steps.setup.outputs.ZMK_WORKSPACE }}
+          zmk_src_dir: ${{ steps.setup.outputs.ZMK_SRC_DIR }}
+          repo_is_module: ${{ steps.setup.outputs.ZMK_EXTRA_MODULES }} != ""
