@@ -3,7 +3,7 @@ name: Run module tests
 on:
   workflow_call:
     inputs:
-      test_dir:
+      test-dir:
         description: "Path to the tests directory"
         type: string
         required: false
@@ -27,7 +27,7 @@ jobs:
         uses: urob/zmk-modules-actions/.github/actions/setup-build-env@feat/reuse-build-steps
         id: setup
         with:
-          config: ${{ inputs.test_dir }}
+          config: ${{ inputs.test-dir }}
           always-update-west: ${{ inputs.always-update-west }}
 
       - name: Test
@@ -35,9 +35,9 @@ jobs:
         uses: urob/zmk-modules-actions/.github/actions/test@feat/reuse-build-steps
         with:
           verbose: ${{ inputs.verbose }}
-          test_dir: ${{ inputs.test_dir }}
-          build_cmd_prefix: ${{ steps.setup.outputs.build_cmd_prefix }}
-          build_dir: ${{ steps.setup.outputs.ZMK_BUILD_DIR }}
-          workspace: ${{ steps.setup.outputs.ZMK_WORKSPACE }}
-          zmk_src_dir: ${{ steps.setup.outputs.ZMK_SRC_DIR }}
-          repo_is_module: ${{ steps.setup.outputs.ZMK_EXTRA_MODULES }} != ""
+          test-dir: ${{ inputs.test-dir }}
+          nix-run: ${{ steps.setup.outputs.nix-run }}
+          build-dir: ${{ steps.setup.outputs.build-dir }}
+          workspace: ${{ steps.setup.outputs.workspace }}
+          zmk-src-dir: ${{ steps.setup.outputs.zmk-src-dir }}
+          repo-is-module: ${{ steps.setup.outputs.zmk-extra-modules }} != ""

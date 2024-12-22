@@ -19,25 +19,45 @@ inputs:
     required: false
 
 outputs:
-  build_cmd_prefix:
+  nix-run:
     description: "Prefix for commands to be run in the build environment"
-    value: ${{ steps.export.outputs.build_cmd_prefix }}
-  ZMK_BUILD_DIR:
+    value: ${{ steps.export.outputs.nix-run }}
+  build-dir:
     description: "Path to build directory"
-    value: ${{ steps.export.outputs.ZMK_BUILD_DIR }}
-  ZMK_WORKSPACE:
+    value: ${{ steps.export.outputs.build-dir }}
+  workspace:
     description: "Path to build environment"
-    value: ${{ steps.workspace.outputs.ZMK_WORKSPACE }}
-  ZMK_SRC_DIR:
+    value: ${{ steps.workspace.outputs.workspace }}
+  zmk-src-dir:
     description: "Path to zmk/app if detected"
-    value: ${{ steps.export.outputs.ZMK_SRC_DIR }}
-  ZMK_EXTRA_MODULES:
+    value: ${{ steps.export.outputs.zmk-src-dir }}
+  zmk-extra-modules:
     description: "Path to repo root if repo is a module"
-    value: ${{ steps.export.outputs.ZMK_EXTRA_MODULES }}
+    value: ${{ steps.export.outputs.zmk-extra-modules }}
 
 runs:
   using: composite
   steps:
+    - name: Get flake
+      shell: bash
+      run: |
+        # Work around issue https://github.com/actions/runner/issues/716.
+        # Otherwise we could default ${{ inputs.flake }} to ${{ github.action_path }}.
+        if [ -n "${{ inputs.flake }}" ]; then
+          echo "flake=${{ inputs.flake }}" >> $GITHUB_ENV
+        else
+          echo "flake=${GITHUB_ACTION_PATH}" >> $GITHUB_ENV
+        fi
+
+    - name: Hash flake
+      shell: bash
+      run: |
+        # Work around issue https://github.com/actions/toolkit/issues/1035.
+        # Otherwise we could just feed the flake directly to hashFiles.
+        shopt -s extglob
+        flake_hash=$(sha256sum ${{ env.flake }}/flake.@(nix|lock) | sha256sum | sed 's/[[:blank:]].*//')
+        echo "flake_hash=${flake_hash}" >> $GITHUB_ENV
+
     - name: Install nix
       uses: nixbuild/nix-quick-install-action@v29
       with:
@@ -47,7 +67,8 @@ runs:
       uses: nix-community/cache-nix-action@v5
       with:
         primary-key:
-          nix-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock') }}
+          # nix-${{ runner.os }}-${{ hashFiles(format('{0}/flake.*', env.flake)) }}
+          nix-${{ runner.os }}-${{ env.flake_hash }}
         restore-prefixes-first-match: nix-${{ runner.os }}-
 
         # Purge old caches and garbage collect new one if there wasn't an exact match
@@ -57,41 +78,30 @@ runs:
         purge-primary-key: never
         gc-max-store-size-linux: 0
 
+    - name: Get Zephyr version
+      shell: sh -x {0}
+      run: |
+        echo "ZEPHYR_VERSION=$(nix develop ${{ env.flake }} --command printenv ZEPHYR_VERSION)" >> $GITHUB_ENV
+
     - name: Move config to temporary isolated workspace
       id: workspace
       shell: bash
       run: |
         # Necessary for repos that are Zephyr modules but doesn't hurt in general
-        workspace="${RUNNER_TEMP}/tests" && echo "ZMK_WORKSPACE=${workspace}" >> $GITHUB_OUTPUT
+        workspace="${RUNNER_TEMP}/tests" && echo "workspace=${workspace}" >> $GITHUB_OUTPUT
         mkdir -p "${workspace}/${{ inputs.config }}"
         cp -R ${{ inputs.config }}/* "${workspace}/${{ inputs.config }}/"
-
-    - name: Set flake input
-      shell: bash
-      run: |
-        # Defaulting ${{ inputs.flake }} to ${{ github.action_path }} doesn't work in containers
-        # due to https://github.com/actions/runner/issues/716 (still applies as of 2024-12-20).
-        if [ -n "${{ inputs.flake }}" ]; then
-          echo "flake=${{ inputs.flake }}" >> $GITHUB_ENV
-        else
-          echo "flake=${GITHUB_ACTION_PATH}" >> $GITHUB_ENV
-        fi
-
-    - name: Get Zephyr version
-      shell: sh -x {0}
-      run: |
-        echo "ZEPHYR_VERSION=$(nix develop ${{ env.flake }} --command printenv ZEPHYR_VERSION)" >> $GITHUB_ENV
 
     - name: Cache west modules
       id: cache-west
       uses: actions/cache@v4
       with:
         path: |
-          ${{ steps.workspace.outputs.ZMK_WORKSPACE }}/modules/
-          ${{ steps.workspace.outputs.ZMK_WORKSPACE }}/tools/
-          ${{ steps.workspace.outputs.ZMK_WORKSPACE }}/zephyr/
-          ${{ steps.workspace.outputs.ZMK_WORKSPACE }}/bootloader/
-          ${{ steps.workspace.outputs.ZMK_WORKSPACE }}/zmk/
+          ${{ steps.workspace.outputs.workspace }}/modules/
+          ${{ steps.workspace.outputs.workspace }}/tools/
+          ${{ steps.workspace.outputs.workspace }}/zephyr/
+          ${{ steps.workspace.outputs.workspace }}/bootloader/
+          ${{ steps.workspace.outputs.workspace }}/zmk/
         key:
           zephyr-${{ env.ZEPHYR_VERSION }}-${{ hashFiles(format('{0}/west.yml',
           inputs.config)) }}
@@ -100,7 +110,7 @@ runs:
           zephyr-
 
     - name: Initialize west workspace
-      working-directory: ${{ steps.workspace.outputs.ZMK_WORKSPACE }}
+      working-directory: ${{ steps.workspace.outputs.workspace }}
       shell: bash
       run: |
         nix develop ${{ env.flake }} --command west init -l "${{ inputs.config }}"
@@ -111,12 +121,12 @@ runs:
 
     - name: Export outputs
       id: export
-      working-directory: ${{ steps.workspace.outputs.ZMK_WORKSPACE }}
+      working-directory: ${{ steps.workspace.outputs.workspace }}
       shell: bash
       run: |
-        echo "build_cmd_prefix=nix develop ${{ env.flake }} --command" >> $GITHUB_OUTPUT
-        echo "ZMK_SRC_DIR=$(find -path '*/zmk/app/west.yml' -printf '%h\n' -quit)" >> $GITHUB_OUTPUT
+        echo "nix-run=nix develop ${{ env.flake }} --command" >> $GITHUB_OUTPUT
+        echo "zmk-src-dir=$(find -path '*/zmk/app/west.yml' -printf '%h\n' -quit)" >> $GITHUB_OUTPUT
         if [ -e ${GITHUB_WORKSPACE}/zephyr/module.yml ]; then
-          echo "ZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}" >> $GITHUB_OUTPUT
+          echo "zmk-extra-modules=${GITHUB_WORKSPACE}" >> $GITHUB_OUTPUT
         fi
-        echo "ZMK_BUILD_DIR=$(mktemp -p ${RUNNER_TEMP} -d build.XXXXXXXXXX)" >> $GITHUB_OUTPUT
+        echo "build-dir=$(mktemp -p ${RUNNER_TEMP} -d build.XXXXXXXXXX)" >> $GITHUB_OUTPUT

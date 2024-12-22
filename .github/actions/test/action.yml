@@ -2,16 +2,16 @@ name: Run tests
 description: Run tests
 
 inputs:
-  build_cmd_prefix:
+  nix-run:
     description: "Prefix for the build command"
     type: string
     required: false
-  artefact_name:
+  artefact-name:
     description: "Name of the uploaded archive"
     type: string
     required: false
     default: "log-files"
-  test_dir:
+  test-dir:
     description: "Path to test cases to run"
     type: string
     required: true
@@ -19,15 +19,15 @@ inputs:
     description: "Path to the test workspace"
     type: string
     required: true
-  build_dir:
+  build-dir:
     description: "Path to the build directory"
     type: string
     required: true
-  repo_is_module:
+  repo-is-module:
     description: "Whether the repo is a ZMK module"
     type: boolean
     required: false
-  zmk_src_dir:
+  zmk-src-dir:
     description: "Path to the ZMK app directory"
     type: string
     required: false
@@ -49,13 +49,13 @@ runs:
       id: test
       working-directory: ${{ inputs.workspace }}
       env:
-        ZMK_SRC_DIR: ${{ inputs.zmk_src_dir }}
-        ZMK_BUILD_DIR: ${{ inputs.build_dir }}
-        ZMK_EXTRA_MODULES: ${{ inputs.repo_is_module && github.workspace }}
+        ZMK_SRC_DIR: ${{ inputs.zmk-src-dir }}
+        ZMK_BUILD_DIR: ${{ inputs.build-dir }}
+        ZMK_EXTRA_MODULES: ${{ inputs.repo-is-module && github.workspace }}
         ZMK_TESTS_VERBOSE: ${{ inputs.verbose && 'true' }}
       shell: bash
       run: |
-        (${{ inputs.build_cmd_prefix }} ${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test_dir }})
+        (${{ inputs.nix-run }} ${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test-dir }})
         if [ $? -eq 0 ]; then
           echo "success=true" >> $GITHUB_OUTPUT
           exit 0
@@ -68,5 +68,5 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artefact_name }}
-        path: ${{ inputs.build_dir }}/**/*.log
+        name: ${{ inputs.artefact-name }}
+        path: ${{ inputs.build-dir }}/**/*.log

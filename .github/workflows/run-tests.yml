@@ -3,7 +3,7 @@ name: Run module tests
 on:
   workflow_call:
     inputs:
-      tests_path:
+      test-dir:
         description: "Path to the tests directory"
         type: string
         required: false
@@ -22,8 +22,8 @@ jobs:
           echo "ZEPHYR_VERSION=${ZEPHYR_VERSION}" >> $GITHUB_ENV
           echo "ZMK_BUILD_DIR=$(mktemp -d)" >> $GITHUB_ENV
           workspace="${TMPDIR:-/tmp}/zmk-tests" && echo "ZMK_WORKSPACE=${workspace}" >> $GITHUB_ENV
-          mkdir -p "${workspace}/${{ inputs.tests_path }}"
-          cp -R ${{ inputs.tests_path }}/* "${workspace}/${{ inputs.tests_path }}/"
+          mkdir -p "${workspace}/${{ inputs.test-dir }}"
+          cp -R ${{ inputs.test-dir }}/* "${workspace}/${{ inputs.test-dir }}/"
 
       - name: Cache west modules
         uses: actions/cache@v4
@@ -42,7 +42,7 @@ jobs:
       - name: Pull in Zephyr modules
         working-directory: ${{ env.ZMK_WORKSPACE }}
         run: |
-          west init -l "${{ inputs.tests_path }}"
+          west init -l "${{ inputs.test-dir }}"
           west update
           west zephyr-export
 
@@ -51,9 +51,9 @@ jobs:
         uses: urob/zmk-modules-actions/.github/actions/test@feat/reuse-build-steps
         with:
           workspace: ${{ env.ZMK_WORKSPACE }}
-          build_dir: ${{ env.ZMK_BUILD_DIR }}
-          repo_is_module: true
-          test_dir: ${{ inputs.tests_path }}
+          build-dir: ${{ env.ZMK_BUILD_DIR }}
+          repo-is-module: true
+          test-dir: ${{ inputs.test-dir }}
 
       - name: Diagnostics
         if: always()
