@@ -48,14 +48,9 @@ jobs:
 
       - name: Test
         id: test
-        uses: urob/zmk-modules-actions/.github/actions/test@feat/reuse-build-steps
+        uses: urob/zmk-modules-actions/test@feat/reuse-build-steps
         with:
           workspace: ${{ env.ZMK_WORKSPACE }}
           build-dir: ${{ env.ZMK_BUILD_DIR }}
           repo-is-module: true
           test-dir: ${{ inputs.test-dir }}
-
-      - name: Diagnostics
-        if: always()
-        run: |
-          echo "${{ steps.test.outputs.success }}"

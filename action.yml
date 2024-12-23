@@ -1,0 +1,10 @@
+name: 'zmk-action: Stub'
+description: 'Stub: Don't use this action directly. Read the documentation instead.'
+runs:
+  using: composite
+  steps:
+- name: Stub
+  shell: bash
+  run: |
+    echo "Stub: Don't use this action directly. Read the documentation instead."
+    exit 1

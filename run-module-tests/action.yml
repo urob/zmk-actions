@@ -1,0 +1,41 @@
+name: Run module tests
+description: Run tests for a ZMK module
+
+inputs:
+  test-dir:
+    description: "Path to the tests directory"
+    type: string
+    required: false
+    default: "tests"
+  verbose:
+    description: "Show detailed build logs"
+    type: boolean
+    required: false
+  always-update-west:
+    description: "Run west update on cache hits"
+    type: boolean
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up test environment
+      id: setup
+      uses: urob/zmk-modules-actions/setup@feat/reuse-build-steps
+      with:
+        config: ${{ inputs.test-dir }}
+        always-update-west: ${{ inputs.always-update-west }}
+
+    - name: Test
+      id: test
+      uses: urob/zmk-modules-actions/test@feat/reuse-build-steps
+      with:
+        verbose: ${{ inputs.verbose }}
+        test-dir: ${{ inputs.test-dir }}
+        nix-run: ${{ steps.setup.outputs.nix-run }}
+        build-dir: ${{ steps.setup.outputs.build-dir }}
+        workspace: ${{ steps.setup.outputs.workspace }}
+        zmk-src-dir: ${{ steps.setup.outputs.zmk-src-dir }}
+        repo-is-module: ${{ steps.setup.outputs.zmk-extra-modules }} != ""

@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up test environment
-        uses: urob/zmk-modules-actions/.github/actions/setup-build-env@feat/reuse-build-steps
+        uses: urob/zmk-modules-actions/setup@feat/reuse-build-steps
         id: setup
         with:
           config: ${{ inputs.test-dir }}
@@ -32,7 +32,7 @@ jobs:
 
       - name: Test
         id: test
-        uses: urob/zmk-modules-actions/.github/actions/test@feat/reuse-build-steps
+        uses: urob/zmk-modules-actions/test@feat/reuse-build-steps
         with:
           verbose: ${{ inputs.verbose }}
           test-dir: ${{ inputs.test-dir }}
