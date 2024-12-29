@@ -31,6 +31,7 @@ runs:
   using: composite
   steps:
     - name: Export env
+      shell: bash
       run: |
         echo "ZMK_BUILD_DIR=$(mktemp -p ${RUNNER_TEMP} -d build.XXXXXXXXXX)" >> $GITHUB_ENV
         echo "ZMK_SRC_DIR=${{ inputs.zmk-src-dir }}" >> $GITHUB_ENV
