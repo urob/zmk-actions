@@ -1,13 +1,7 @@
 name: Set up ZMK build environment
-description: Build and test environment for ZMK firmware using Nix
+description: Build and test environment for ZMK firmware.
 
 inputs:
-  flake:
-    description:
-      "Absolute path to directory containing flake.nix (if unspecified uses the
-      one provided by the action)"
-    type: string
-    required: false
   config:
     description: "Config or tests path relative to repo root"
     type: string
@@ -29,50 +23,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Get flake
-      shell: bash
-      run: |
-        # Work around issue https://github.com/actions/runner/issues/716.
-        # Otherwise we could default ${{ inputs.flake }} to ${{ github.action_path }}.
-        if [ -n "${{ inputs.flake }}" ]; then
-          echo "flake=${{ inputs.flake }}" >> $GITHUB_ENV
-        else
-          echo "flake=${GITHUB_ACTION_PATH}" >> $GITHUB_ENV
-        fi
-
-    - name: Hash flake
-      shell: bash
-      run: |
-        # Work around issue https://github.com/actions/toolkit/issues/1035.
-        # Otherwise we could just feed the flake directly to hashFiles.
-        shopt -s extglob
-        flake_hash=$(sha256sum ${{ env.flake }}/flake.@(nix|lock) | sha256sum | sed 's/[[:blank:]].*//')
-        echo "flake_hash=${flake_hash}" >> $GITHUB_ENV
-
-    - name: Install nix
-      uses: nixbuild/nix-quick-install-action@v29
-      with:
-        nix_on_tmpfs: true
-
-    - name: Cache nix derivations
-      uses: nix-community/cache-nix-action@v5
-      with:
-        primary-key:
-          # nix-${{ runner.os }}-${{ hashFiles(format('{0}/flake.*', env.flake)) }}
-          nix-${{ runner.os }}-${{ env.flake_hash }}
-        restore-prefixes-first-match: nix-${{ runner.os }}-
-
-        # Purge old caches and garbage collect new one if there wasn't an exact match
-        purge: true
-        purge-prefixes: nix-${{ runner.os }}-
-        purge-created: 0
-        purge-primary-key: never
-        gc-max-store-size-linux: 0
-
-    - name: Export devShell
-      shell: bash
-      run: ${GITHUB_ACTION_PATH}/nix-develop.sh ${{ env.flake }}
-
     - name: Move config to temporary isolated workspace
       id: workspace
       shell: bash
@@ -81,6 +31,11 @@ runs:
         workspace="${RUNNER_TEMP}/tests" && echo "workspace=${workspace}" >> $GITHUB_OUTPUT
         mkdir -p "${workspace}/${{ inputs.config }}"
         cp -R ${{ inputs.config }}/* "${workspace}/${{ inputs.config }}/"
+
+    - name: Export ZEPHYR_VERSION
+      if: ${{ env.ZEPHYR_VERSION == '' }}
+      shell: bash
+      run: echo "ZEPHYR_VERSION=${ZEPHYR_VERSION}" >> $GITHUB_ENV
 
     - name: Cache west modules
       id: cache-west
@@ -93,8 +48,7 @@ runs:
           ${{ steps.workspace.outputs.workspace }}/bootloader/
           ${{ steps.workspace.outputs.workspace }}/zmk/
         key:
-          zephyr-${{ env.ZEPHYR_VERSION }}-${{ hashFiles(format('{0}/west.yml',
-          inputs.config)) }}
+          zephyr-${{ env.ZEPHYR_VERSION }}-${{ hashFiles(format('{0}/west.yml', inputs.config)) }}
         restore-keys: |
           zephyr-${{ env.ZEPHYR_VERSION }}-
           zephyr-

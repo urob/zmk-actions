@@ -8,6 +8,14 @@ on:
         type: string
         required: false
         default: "tests"
+      verbose:
+        description: "Show detailed build logs"
+        type: boolean
+        required: false
+      always-update-west:
+        description: "Run west update on cache hits"
+        type: boolean
+        required: false
 
 jobs:
   run-tests:
@@ -17,37 +25,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare workspace
-        run: |
-          echo "ZEPHYR_VERSION=${ZEPHYR_VERSION}" >> $GITHUB_ENV
-          workspace="${TMPDIR:-/tmp}/zmk-tests" && echo "ZMK_WORKSPACE=${workspace}" >> $GITHUB_ENV
-          mkdir -p "${workspace}/${{ inputs.test-dir }}"
-          cp -R ${{ inputs.test-dir }}/* "${workspace}/${{ inputs.test-dir }}/"
-
-      - name: Cache west modules
-        uses: actions/cache@v4
+      - name: Set up ZMK workspace
+        uses: urob/zmk-actions/setup-zmk@main
+        id: setup-zmk
         with:
-          path: |
-            ${{ env.ZMK_WORKSPACE }}/modules/
-            ${{ env.ZMK_WORKSPACE }}/tools/
-            ${{ env.ZMK_WORKSPACE }}/zephyr/
-            ${{ env.ZMK_WORKSPACE }}/bootloader/
-            ${{ env.ZMK_WORKSPACE }}/zmk/
-          key: zephyr-${{ env.ZEPHYR_VERSION }}-${{ hashFiles('**/west.yml') }}
-          restore-keys: |
-            zephyr-${{ env.ZEPHYR_VERSION }}-
-            zephyr-
-
-      - name: Pull in Zephyr modules
-        working-directory: ${{ env.ZMK_WORKSPACE }}
-        run: |
-          west init -l "${{ inputs.test-dir }}"
-          west update
-          west zephyr-export
+          config: ${{ inputs.test-dir }}
+          always-update-west: ${{ inputs.always-update-west }}
 
       - name: Test
         id: test
         uses: urob/zmk-actions/test@v2
         with:
-          workspace: ${{ env.ZMK_WORKSPACE }}
+          verbose: ${{ inputs.verbose }}
           test-dir: ${{ inputs.test-dir }}
+          workspace: ${{ steps.setup-zmk.outputs.workspace }}
+          zmk-src-dir: ${{ steps.setup-zmk.outputs.zmk-src-dir }}

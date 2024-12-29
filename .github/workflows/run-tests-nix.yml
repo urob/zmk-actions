@@ -22,10 +22,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: urob/zmk-actions/setup-zephyr@main
 
       - name: Set up ZMK workspace
-        uses: urob/zmk-actions/setup@v2
-        id: setup
+        uses: urob/zmk-actions/setup-zmk@main
+        id: setup-zmk
         with:
           config: ${{ inputs.test-dir }}
           always-update-west: ${{ inputs.always-update-west }}
@@ -36,5 +37,5 @@ jobs:
         with:
           verbose: ${{ inputs.verbose }}
           test-dir: ${{ inputs.test-dir }}
-          workspace: ${{ steps.setup.outputs.workspace }}
-          zmk-src-dir: ${{ steps.setup.outputs.zmk-src-dir }}
+          workspace: ${{ steps.setup-zmk.outputs.workspace }}
+          zmk-src-dir: ${{ steps.setup-zmk.outputs.zmk-src-dir }}
