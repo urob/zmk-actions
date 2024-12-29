@@ -16,14 +16,24 @@ on:
         description: "Run west update on cache hits"
         type: boolean
         required: false
+      run-in-container:
+        description:
+          "Whether to run in a Docker container. If false will use Nix to set up
+          the environment."
+        type: boolean
+        required: false
 
 jobs:
   run-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container:
-      image: docker.io/zmkfirmware/zmk-build-arm:3.5
+      ${{ fromJSON(inputs.run-in-container) &&
+      "docker.io/zmkfirmware/zmk-build-arm:3.5" || null }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: urob/zmk-actions/setup-zephyr@main
+        if: ${{ ! inputs.run-in-container }}
 
       - name: Set up ZMK workspace
         uses: urob/zmk-actions/setup-zmk@main
