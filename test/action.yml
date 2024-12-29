@@ -1,11 +1,9 @@
 name: Run tests
-description: Run tests
+description:
+  Wrap run-test.sh as a composite action, mainly so we can package the script
+  alongside the workflow.
 
 inputs:
-  nix-run:
-    description: "Prefix for the build command"
-    type: string
-    required: false
   artefact-name:
     description: "Name of the uploaded archive"
     type: string
@@ -19,14 +17,6 @@ inputs:
     description: "Path to the test workspace"
     type: string
     required: true
-  build-dir:
-    description: "Path to the build directory"
-    type: string
-    required: true
-  repo-is-module:
-    description: "Whether the repo is a ZMK module"
-    type: boolean
-    required: false
   zmk-src-dir:
     description: "Path to the ZMK app directory"
     type: string
@@ -37,32 +27,23 @@ inputs:
     type: boolean
     required: false
 
-outputs:
-  success:
-    description: "Whether the tests passed"
-    value: ${{ steps.test.outputs.success }}
-
 runs:
   using: composite
   steps:
+    - name: Export env
+      run: |
+        echo "ZMK_BUILD_DIR=$(mktemp -p ${RUNNER_TEMP} -d build.XXXXXXXXXX)" >> $GITHUB_ENV
+        echo "ZMK_SRC_DIR=${{ inputs.zmk-src-dir }}" >> $GITHUB_ENV
+        if [ -e ${GITHUB_WORKSPACE}/zephyr/module.yml ]; then
+          echo "ZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+        fi
+        echo "ZMK_TESTS_VERBOSE=${{ inputs.verbose && 'true' }}" >> $GITHUB_ENV
+
     - name: Test
       id: test
       working-directory: ${{ inputs.workspace }}
-      env:
-        ZMK_SRC_DIR: ${{ inputs.zmk-src-dir }}
-        ZMK_BUILD_DIR: ${{ inputs.build-dir }}
-        ZMK_EXTRA_MODULES: ${{ inputs.repo-is-module && github.workspace }}
-        ZMK_TESTS_VERBOSE: ${{ inputs.verbose && 'true' }}
       shell: bash
-      run: |
-        (${{ inputs.nix-run }} ${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test-dir }})
-        if [ $? -eq 0 ]; then
-          echo "success=true" >> $GITHUB_OUTPUT
-          exit 0
-        else
-          echo "success=false" >> $GITHUB_OUTPUT
-          exit 1
-        fi
+      run: ${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test-dir }}
 
     - name: Archive logs
       if: always()

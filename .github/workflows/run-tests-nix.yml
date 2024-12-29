@@ -23,8 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up test environment
-        uses: urob/zmk-modules-actions/setup@feat/reuse-build-steps
+      - name: Set up ZMK workspace
+        uses: urob/zmk-actions/setup@v2
         id: setup
         with:
           config: ${{ inputs.test-dir }}
@@ -32,12 +32,9 @@ jobs:
 
       - name: Test
         id: test
-        uses: urob/zmk-modules-actions/test@feat/reuse-build-steps
+        uses: urob/zmk-actions/test@v2
         with:
           verbose: ${{ inputs.verbose }}
           test-dir: ${{ inputs.test-dir }}
-          nix-run: ${{ steps.setup.outputs.nix-run }}
-          build-dir: ${{ steps.setup.outputs.build-dir }}
           workspace: ${{ steps.setup.outputs.workspace }}
           zmk-src-dir: ${{ steps.setup.outputs.zmk-src-dir }}
-          repo-is-module: ${{ steps.setup.outputs.zmk-extra-modules }} != ""

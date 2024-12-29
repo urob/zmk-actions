@@ -19,21 +19,12 @@ inputs:
     required: false
 
 outputs:
-  nix-run:
-    description: "Prefix for commands to be run in the build environment"
-    value: ${{ steps.export.outputs.nix-run }}
-  build-dir:
-    description: "Path to build directory"
-    value: ${{ steps.export.outputs.build-dir }}
   workspace:
     description: "Path to build environment"
     value: ${{ steps.workspace.outputs.workspace }}
   zmk-src-dir:
     description: "Path to zmk/app if detected"
     value: ${{ steps.export.outputs.zmk-src-dir }}
-  zmk-extra-modules:
-    description: "Path to repo root if repo is a module"
-    value: ${{ steps.export.outputs.zmk-extra-modules }}
 
 runs:
   using: composite
@@ -78,12 +69,9 @@ runs:
         purge-primary-key: never
         gc-max-store-size-linux: 0
 
-    - name: Install devenv
-    #   shell: bash
-    #   run: ${GITHUB_ACTION_PATH}/nix-develop.sh ${{ env.flake }}
-      uses: rrbutani/use-nix-shell-action@v1
-      with:
-        devShell: ${{ env.flake }}
+    - name: Export devShell
+      shell: bash
+      run: ${GITHUB_ACTION_PATH}/nix-develop.sh ${{ env.flake }}
 
     - name: Move config to temporary isolated workspace
       id: workspace
@@ -121,14 +109,9 @@ runs:
         fi
         west zephyr-export
 
-    - name: Export outputs
+    - name: Find ZMK source directory
       id: export
       working-directory: ${{ steps.workspace.outputs.workspace }}
       shell: bash
       run: |
-        echo "nix-run=" >> $GITHUB_OUTPUT
         echo "zmk-src-dir=$(find -path '*/zmk/app/west.yml' -printf '%h\n' -quit)" >> $GITHUB_OUTPUT
-        if [ -e ${GITHUB_WORKSPACE}/zephyr/module.yml ]; then
-          echo "zmk-extra-modules=${GITHUB_WORKSPACE}" >> $GITHUB_OUTPUT
-        fi
-        echo "build-dir=$(mktemp -p ${RUNNER_TEMP} -d build.XXXXXXXXXX)" >> $GITHUB_OUTPUT
