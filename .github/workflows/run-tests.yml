@@ -27,8 +27,7 @@ jobs:
   run-tests:
     runs-on: ubuntu-24.04
     container:
-      ${{ fromJSON(inputs.run-in-container) &&
-      "docker.io/zmkfirmware/zmk-build-arm:3.5" || null }}
+      ${{ fromJSON(inputs.run-in-container) && 'docker.io/zmkfirmware/zmk-build-arm:3.5' || null }}
     steps:
       - uses: actions/checkout@v4
 
