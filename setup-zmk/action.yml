@@ -1,5 +1,5 @@
-name: Set up ZMK build environment
-description: Build and test environment for ZMK firmware.
+name: Setup ZMK dependencies
+description: Pull in ZMK and Zephyr modules
 
 inputs:
   config:
@@ -7,6 +7,7 @@ inputs:
     type: string
     required: false
     default: "config"
+
   always-update-west:
     description: "Update west modules on cache hit"
     type: boolean
@@ -16,6 +17,7 @@ outputs:
   workspace:
     description: "Path to build environment"
     value: ${{ steps.workspace.outputs.workspace }}
+
   zmk-src-dir:
     description: "Path to zmk/app if detected"
     value: ${{ steps.export.outputs.zmk-src-dir }}
@@ -27,7 +29,7 @@ runs:
       id: workspace
       shell: bash
       run: |
-        # Necessary for repos that are Zephyr modules but doesn't hurt in general
+        # Necessary for repos that are themselves Zephyr modules but doesn't hurt in general
         workspace="${RUNNER_TEMP}/tests" && echo "workspace=${workspace}" >> $GITHUB_OUTPUT
         mkdir -p "${workspace}/${{ inputs.config }}"
         cp -R ${{ inputs.config }}/* "${workspace}/${{ inputs.config }}/"
@@ -47,8 +49,10 @@ runs:
           ${{ steps.workspace.outputs.workspace }}/zephyr/
           ${{ steps.workspace.outputs.workspace }}/bootloader/
           ${{ steps.workspace.outputs.workspace }}/zmk/
+
         key:
           zephyr-${{ env.ZEPHYR_VERSION }}-${{ hashFiles(format('{0}/west.yml', inputs.config)) }}
+
         restore-keys: |
           zephyr-${{ env.ZEPHYR_VERSION }}-
           zephyr-

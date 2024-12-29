@@ -9,19 +9,23 @@ inputs:
     type: string
     required: false
     default: "log-files"
+
   test-dir:
     description: "Path to test cases to run"
     type: string
     required: true
+
   workspace:
     description: "Path to the test workspace"
     type: string
     required: true
+
   zmk-src-dir:
     description: "Path to the ZMK app directory"
     type: string
     required: false
     default: "zmk/app"
+
   verbose:
     description: "Show detailed build logs"
     type: boolean
@@ -41,9 +45,8 @@ runs:
         echo "ZMK_TESTS_VERBOSE=${{ inputs.verbose && 'true' }}" >> $GITHUB_ENV
 
     - name: Test
-      id: test
-      working-directory: ${{ inputs.workspace }}
       shell: bash
+      working-directory: ${{ inputs.workspace }}
       run: ${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test-dir }}
 
     - name: Archive logs

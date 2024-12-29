@@ -14,16 +14,24 @@ permissions:
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'Bump ZMK')
     runs-on: ubuntu-latest
+
+    if:
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.title, 'Bump ZMK')
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Bump version and push tag
         run: |
           tag=$(echo ${{ github.event.pull_request.title }} | sed -n 's/^.*\(v[^[:space:]]*\).*/\1/p')
           git tag -f $tag
+
+          # Move minor and major tag
           git tag -f ${tag%.*}
           if [ ${tag%%.*} != "v0" ]; then
             git tag -f ${tag%%.*}
           fi
+
           git push -f --tags origin ${{ github.ref_name }}:${{ inputs.release_branch }}

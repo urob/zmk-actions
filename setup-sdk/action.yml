@@ -1,5 +1,5 @@
-name: Set up ZMK build environment
-description: Build and test environment for ZMK firmware using Nix
+name: Setup Zephyr toolchain
+description: Set up West and Zephyr SDK using Nix
 
 inputs:
   flake:
@@ -43,6 +43,7 @@ runs:
         primary-key:
           # nix-${{ runner.os }}-${{ hashFiles(format('{0}/flake.*', env.flake)) }}
           nix-${{ runner.os }}-${{ env.flake_hash }}
+
         restore-prefixes-first-match: nix-${{ runner.os }}-
 
         # Purge old caches and garbage collect new one if there wasn't an exact match

@@ -8,21 +8,25 @@ on:
         type: string
         required: false
         default: "zmkfirmware/zmk"
+
       west_path:
         description: "Path to the west.yml file"
         type: string
         required: false
         default: "tests/west.yml"
+
       pr_branch:
         description: "Branch to push the PR to"
         type: string
         required: false
         default: "upgrade-zmk"
+
       pr_label:
         description: "Label to add to the PR"
         type: string
         required: false
         default: ""
+
     secrets:
       token:
         required: true
@@ -47,7 +51,8 @@ jobs:
       - name: Detect changes
         id: changes
         run:
-          echo "count=$(git status --porcelain=v1 2>/dev/null | wc -l)" >> $GITHUB_OUTPUT
+          echo "count=$(git status --porcelain=v1 2>/dev/null | wc -l)" >>
+          $GITHUB_OUTPUT
 
       - name: Commit & push changes
         if: steps.changes.outputs.count > 0
