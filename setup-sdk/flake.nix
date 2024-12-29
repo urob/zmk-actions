@@ -20,12 +20,9 @@
       pkgs = nixpkgs.legacyPackages.${system};
       zephyr = zephyr-nix.packages.${system};
 
-    in {
-      default = pkgs.mkShellNoCC {
-        buildInputs = [
-          # zephyr.pythonEnv
-
-          # (zephyr.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; })
+    in rec {
+      gnuarmemb = pkgs.mkShellNoCC {
+        packages = [
           pkgs.gcc-arm-embedded
 
           pkgs.cmake
@@ -37,8 +34,6 @@
             ps.pyelftools
             ps.pyyaml
           ]))
-
-          # pkgs.qemu # needed for native_posix target
         ];
 
         env = {
@@ -47,6 +42,30 @@
           ZEPHYR_VERSION = "3.5.0";
         };
       };
+
+      zephyr = pkgs.mkShellNoCC {
+        packages = [
+          (zephyr.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; })
+
+          pkgs.cmake
+          pkgs.dtc
+          pkgs.ninja
+
+          # zephyr.pythonEnv
+          (pkgs.python3.withPackages (ps: with ps; [
+            ps.west
+            ps.pyelftools
+            ps.pyyaml
+          ]))
+        ];
+
+        env = {
+          ZEPHYR_TOOLCHAIN_VARIANT = "zephyr";
+          ZEPHYR_VERSION = "3.5.0";
+        };
+      };
+
+      default = gnuarmemb;
     });
   };
 }

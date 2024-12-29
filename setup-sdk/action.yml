@@ -9,14 +9,26 @@ inputs:
     type: string
     required: false
 
+  toolchain:
+    description: "Zephyr toolchain to use (defaults to 'gnuarmemb')."
+    type: choice
+    required: false
+    default: default
+    options:
+      - default
+      - gnuarmemb
+      - zephyr
+
 runs:
   using: composite
   steps:
     - name: Get flake
       shell: bash
       run: |
-        # Work around issue https://github.com/actions/runner/issues/716.
-        # Otherwise we could default ${{ inputs.flake }} to ${{ github.action_path }}.
+        # Manually default ${{ inputs.flake }} to ${{ github.action_path }}. This is
+        # to shield against bug where ${{ github.action_path }} is set incorrect in
+        # containers (https://github.com/actions/runner/issues/716.) Normally we don't
+        # expect to run this action in a container but no harm in being safe.
         if [ -n "${{ inputs.flake }}" ]; then
           echo "flake=${{ inputs.flake }}" >> $GITHUB_ENV
         else
@@ -26,8 +38,8 @@ runs:
     - name: Hash flake
       shell: bash
       run: |
-        # Work around issue https://github.com/actions/toolkit/issues/1035.
-        # Otherwise we could just feed the flake directly to hashFiles.
+        # Manually compute hash because hashFiles doesn't work outside the workspace
+        # (https://github.com/actions/toolkit/issues/1035.)
         shopt -s extglob
         flake_hash=$(sha256sum ${{ env.flake }}/flake.@(nix|lock) | sha256sum | sed 's/[[:blank:]].*//')
         echo "flake_hash=${flake_hash}" >> $GITHUB_ENV
@@ -55,4 +67,5 @@ runs:
 
     - name: Export devShell
       shell: bash
-      run: ${GITHUB_ACTION_PATH}/nix-develop.sh ${{ env.flake }}
+      run:
+        ${GITHUB_ACTION_PATH}/nix-develop.sh "${{ env.flake }}#${{ inputs.toolchain }}"
