@@ -59,7 +59,7 @@ runs:
       run: |
         west init -l "${{ inputs.config }}"
         if [ ${{ steps.cache-west.outputs.cache-hit != 'true' || inputs.always-update-west }} == true ]; then
-          west update
+          west update --fetch-opt=--filter=tree:0
         fi
         west zephyr-export
 
