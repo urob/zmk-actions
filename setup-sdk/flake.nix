@@ -14,14 +14,13 @@
 
   outputs = { nixpkgs, zephyr-nix, ... }: let
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
-    forAllSystems = nixpkgs.lib.genAttrs systems;
-  in {
-    devShells = forAllSystems (system: let
+    forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f {
       pkgs = nixpkgs.legacyPackages.${system};
-      zephyr = zephyr-nix.packages.${system};
-
-    in {
-      default = pkgs.mkShellNoCC {
+      zephyr_ = zephyr-nix.packages.${system};
+    });
+  in {
+    devShells = forAllSystems ({ pkgs, zephyr_ }: rec {
+      gnuarmemb = pkgs.mkShellNoCC {
         packages = [
           pkgs.gcc-arm-embedded
 
@@ -45,13 +44,13 @@
 
       zephyr = pkgs.mkShellNoCC {
         packages = [
-          (zephyr.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; })
+          (zephyr_.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; })
 
           pkgs.cmake
           pkgs.dtc
           pkgs.ninja
 
-          # zephyr.pythonEnv
+          # zephyr_.pythonEnv
           (pkgs.python3.withPackages (ps: with ps; [
             ps.west
             ps.pyelftools
@@ -65,7 +64,7 @@
         };
       };
 
-      # default = gnuarmemb;
+      default = gnuarmemb;
     });
   };
 }
