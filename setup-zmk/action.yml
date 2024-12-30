@@ -34,11 +34,6 @@ runs:
         mkdir -p "${workspace}/${{ inputs.config }}"
         cp -R ${{ inputs.config }}/* "${workspace}/${{ inputs.config }}/"
 
-    - name: Export ZEPHYR_VERSION
-      if: ${{ env.ZEPHYR_VERSION == '' }}
-      shell: bash
-      run: echo "ZEPHYR_VERSION=${ZEPHYR_VERSION}" >> $GITHUB_ENV
-
     - name: Cache west modules
       id: cache-west
       uses: actions/cache@v4
@@ -50,12 +45,8 @@ runs:
           ${{ steps.workspace.outputs.workspace }}/bootloader/
           ${{ steps.workspace.outputs.workspace }}/zmk/
 
-        key:
-          zephyr-${{ env.ZEPHYR_VERSION }}-${{ hashFiles(format('{0}/west.yml', inputs.config)) }}
-
-        restore-keys: |
-          zephyr-${{ env.ZEPHYR_VERSION }}-
-          zephyr-
+        key: zephyr-${{ hashFiles(format('{0}/west.yml', inputs.config)) }}
+        restore-keys: zephyr-
 
     - name: Initialize west workspace
       working-directory: ${{ steps.workspace.outputs.workspace }}
