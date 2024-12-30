@@ -12,59 +12,52 @@
     zephyr-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { nixpkgs, zephyr-nix, ... }: let
-    systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
-    forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f {
-      pkgs = nixpkgs.legacyPackages.${system};
-      zephyr_ = zephyr-nix.packages.${system};
-    });
-  in {
-    devShells = forAllSystems ({ pkgs, zephyr_ }: rec {
-      gnuarmemb = pkgs.mkShellNoCC {
-        packages = [
-          pkgs.gcc-arm-embedded
+  outputs = { nixpkgs, zephyr-nix, ... }:
+    let
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f {
+        pkgs = nixpkgs.legacyPackages.${system};
+        zephyr_ = zephyr-nix.packages.${system};
+      });
+    in
+    {
+      devShells = forAllSystems ({ pkgs, zephyr_ }:
+        let
+          shared_pkgs = [
+            pkgs.cmake
+            pkgs.dtc
+            pkgs.ninja
 
-          pkgs.cmake
-          pkgs.dtc
-          pkgs.ninja
+            (pkgs.python3.withPackages (ps: with ps; [
+              ps.west
+              ps.pyelftools
+              ps.pyyaml
+            ]))
+          ];
+        in
+        rec {
+          gnuarmemb = pkgs.mkShellNoCC {
+            packages = shared_pkgs ++ [ pkgs.gcc-arm-embedded ];
 
-          (pkgs.python3.withPackages (ps: with ps; [
-            ps.west
-            ps.pyelftools
-            ps.pyyaml
-          ]))
-        ];
+            env = {
+              ZEPHYR_TOOLCHAIN_VARIANT = "gnuarmemb";
+              GNUARMEMB_TOOLCHAIN_PATH = pkgs.gcc-arm-embedded;
+              ZEPHYR_VERSION = "3.5.0";
+            };
+          };
 
-        env = {
-          ZEPHYR_TOOLCHAIN_VARIANT = "gnuarmemb";
-          GNUARMEMB_TOOLCHAIN_PATH = pkgs.gcc-arm-embedded;
-          ZEPHYR_VERSION = "3.5.0";
-        };
-      };
+          zephyr = pkgs.mkShellNoCC {
+            packages = shared_pkgs ++ [ (zephyr_.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; }) ];
 
-      zephyr = pkgs.mkShellNoCC {
-        packages = [
-          (zephyr_.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; })
+            env = {
+              ZEPHYR_TOOLCHAIN_VARIANT = "zephyr";
+              ZEPHYR_VERSION = "3.5.0";
+            };
+          };
 
-          pkgs.cmake
-          pkgs.dtc
-          pkgs.ninja
+          default = gnuarmemb;
+        });
 
-          # zephyr_.pythonEnv
-          (pkgs.python3.withPackages (ps: with ps; [
-            ps.west
-            ps.pyelftools
-            ps.pyyaml
-          ]))
-        ];
-
-        env = {
-          ZEPHYR_TOOLCHAIN_VARIANT = "zephyr";
-          ZEPHYR_VERSION = "3.5.0";
-        };
-      };
-
-      default = gnuarmemb;
-    });
-  };
+      formatter = forAllSystems ({ pkgs, ... }: pkgs.nixpkgs-fmt);
+    };
 }
