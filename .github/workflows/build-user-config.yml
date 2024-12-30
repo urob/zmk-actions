@@ -40,7 +40,7 @@ on:
         required: false
 
       toolchain:
-        description: "gnuarmemb (default) or zephyr (only used if run-in-container is false)"
+        description: "Toolchain if using nix ('gnuarmemb' or 'zephyr')"
         type: string
         required: false
         default: default
@@ -84,7 +84,7 @@ jobs:
         with:
           toolchain: ${{ inputs.toolchain }}
 
-      - name: Set up ZMK and its Zephyr dependencies
+      - name: Pull in ZMK and Zephyr modules
         uses: urob/zmk-actions/setup-zmk@v3
         id: setup-zmk
         with:

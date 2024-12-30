@@ -2,7 +2,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
 
-    # Zephyr sdk and toolchain
     zephyr-nix.url = "github:urob/zephyr-nix";
     zephyr-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -46,7 +45,7 @@
             };
           };
 
-          default = gnuarmemb;
+          default = zephyr;
         });
 
       formatter = forAllSystems ({ pkgs, ... }: pkgs.nixpkgs-fmt);

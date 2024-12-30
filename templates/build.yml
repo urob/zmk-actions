@@ -10,5 +10,6 @@ jobs:
   build:
     uses: urob/zmk-actions/.github/workflows/build-user-config.yml@v3
     with:
-      # Use 'gnuarmemb' for best performance or 'zephyr' for maximum compatibility.
+      # Defaults to 'zephyr' (Zephyr SDK). Set to 'gnuarmemb' for slightly
+      # better performance at a (small) risk of reduced compatibility.
       toolchain: zephyr
