@@ -20,8 +20,8 @@
       pkgs = nixpkgs.legacyPackages.${system};
       zephyr = zephyr-nix.packages.${system};
 
-    in rec {
-      gnuarmemb = pkgs.mkShellNoCC {
+    in {
+      default = pkgs.mkShellNoCC {
         packages = [
           pkgs.gcc-arm-embedded
 
@@ -65,7 +65,7 @@
         };
       };
 
-      default = gnuarmemb;
+      # default = gnuarmemb;
     });
   };
 }
