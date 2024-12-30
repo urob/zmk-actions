@@ -39,6 +39,12 @@ on:
         type: boolean
         required: false
 
+      toolchain:
+        description: "gnuarmemb (default) or zephyr (only used if run-in-container is false)"
+        type: string
+        required: false
+        default: default
+
 jobs:
   matrix:
     runs-on: ubuntu-24.04
@@ -75,6 +81,8 @@ jobs:
       - name: Set up West and Zephyr SDK
         if: ${{ ! inputs.run-in-container }}
         uses: urob/zmk-actions/setup-sdk@main
+        with:
+          toolchain: ${{ inputs.toolchain }}
 
       - name: Set up ZMK and its Zephyr dependencies
         uses: urob/zmk-actions/setup-zmk@main
