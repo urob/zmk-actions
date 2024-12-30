@@ -1,4 +1,4 @@
-# ZMK-MODULES-ACTIONS
+# ZMK-ACTIONS
 
 This repository contains GitHub Actions workflows for automatically testing ZMK modules and
 synchronizing releases with ZMK. The workflows are designed to work in sequence:
@@ -7,6 +7,14 @@ synchronizing releases with ZMK. The workflows are designed to work in sequence:
    dependencies.
 2. `run-tests.yml` - Run automated module tests on pull requests.
 3. `upgrade-module.yml` - Automatically bump module version to match ZMK version on merge.
+
+The repository also contains lower-level actions for setting up ZMK test and build environments
+using Nix.
+
+Finally, there is a drop-in replacement workflow for `build-user-config` which performs moderately
+faster than the upstream version. For instance, average build times for my personal
+[ZMK config](https://github.com/urob/zmk-config) using the nix-based workflow are 2m52s vs 4m06s
+with a cold cache and 1m29s vs 1m44s with a warm cache.
 
 ## How it works
 
