@@ -2,12 +2,12 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
 
-    # Version of requirements.txt installed in pythonEnv
-    zephyr.url = "github:zephyrproject-rtos/zephyr/v3.5.0";
+    # Only affects which requirements.txt is sourced by pythonEnv
+    zephyr.url = "github:zmkfirmware/zephyr/v3.5.0+zmk-fixes";
     zephyr.flake = false;
 
     # Zephyr sdk and toolchain
-    zephyr-nix.url = "github:adisbladis/zephyr-nix";
+    zephyr-nix.url = "github:urob/zephyr-nix";
     zephyr-nix.inputs.zephyr.follows = "zephyr";
     zephyr-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
