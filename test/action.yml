@@ -42,7 +42,7 @@ runs:
         if [ -e ${GITHUB_WORKSPACE}/zephyr/module.yml ]; then
           echo "ZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
         fi
-        echo "ZMK_TESTS_VERBOSE=${{ inputs.verbose && 'true' }}" >> $GITHUB_ENV
+        echo "ZMK_TESTS_VERBOSE=${{ fromJSON(inputs.verbose) && 'true' || '' }}" >> $GITHUB_ENV
 
     - name: Test
       shell: bash
