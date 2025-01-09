@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    uses: urob/zmk-actions/.github/workflows/build-user-config.yml@v3
+    uses: urob/zmk-actions/.github/workflows/build-user-config.yml@v4
     with:
       # Defaults to 'zephyr' (Zephyr SDK). Set to 'gnuarmemb' for slightly
       # better performance at a (small) risk of reduced compatibility.
