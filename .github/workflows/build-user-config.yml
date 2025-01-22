@@ -34,11 +34,6 @@ on:
         type: boolean
         required: false
 
-      always-update-west:
-        description: "Run west update even on cache hits."
-        type: boolean
-        required: false
-
       toolchain:
         description: "Toolchain if using nix ('gnuarmemb' or 'zephyr')"
         type: string
@@ -89,7 +84,7 @@ jobs:
         id: setup-zmk
         with:
           config: ${{ inputs.config_path }}
-          always-update-west: ${{ inputs.always-update-west }}
+          always-update-west: true
 
       - name: Prepare variables
         shell: sh -x {0}
