@@ -75,7 +75,7 @@ jobs:
 
       - name: Set up West and Zephyr SDK
         if: ${{ ! inputs.run-in-container }}
-        uses: urob/zmk-actions/setup-sdk@v4
+        uses: urob/zmk-actions/setup-sdk@main
         with:
           toolchain: ${{ inputs.toolchain }}
 
