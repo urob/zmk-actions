@@ -18,6 +18,7 @@ inputs:
       - default
       - gnuarmemb
       - zephyr
+      - zephyr-full
 
 runs:
   using: composite
