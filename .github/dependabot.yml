@@ -1,6 +1,11 @@
 version: 2
 updates:
-  - directory: /
-    package-ecosystem: github-actions
+  - package-ecosystem: github-actions
+    directories:
+      - /.github/workflows
+      - /setup-sdk
+      - /setup-zmk
+      - /templates
+      - /test
     schedule:
       interval: daily
