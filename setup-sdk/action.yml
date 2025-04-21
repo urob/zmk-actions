@@ -51,7 +51,7 @@ runs:
         nix_on_tmpfs: true
 
     - name: Cache nix derivations
-      uses: nix-community/cache-nix-action@v5
+      uses: nix-community/cache-nix-action@v6
       with:
         primary-key:
           # nix-${{ runner.os }}-${{ hashFiles(format('{0}/flake.*', env.flake)) }}
