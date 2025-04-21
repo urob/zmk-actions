@@ -8,11 +8,8 @@ on:
 
 jobs:
   build:
-    uses: urob/zmk-actions/.github/workflows/build-user-config.yml@v4
+    uses: urob/zmk-actions/.github/workflows/build-user-config.yml@main
     with:
-      # Choose from 'zephyr' (Zephyr SDK), 'gnuarmemb' (GNU Arm Embedded), or
-      # 'zephyr-full' (Zephyr SDK with full Python toolchain). Defaults to
-      # 'zephyr' if omitted. Set to 'gnuarmemb' for slightly better performance
-      # at a (small) risk of reduced compatibility. Set to `zephyr-full` for
-      # ZMK Studio support.
+      # Set to 'gnuarmemb', 'zephyr' or 'zephyr-full' (from fastest to
+      # most compatible). ZMK Studio requires 'zephyr-full'.
       toolchain: zephyr
