@@ -61,7 +61,7 @@ of the `urob/zmk-leader-key` module.
 ### 2. Add workflows to your repository
 
 In most cases, it should suffice to copy the contents of
-[`templates`](https://github.com/urob/zmk-modules-actions/tree/main/templates) to your repository.
+[`templates`](https://github.com/urob/zmk-actions/tree/main/templates) to your repository.
 The following provides a more detailed explanation of each workflow recipe.
 
 #### 2a/ `upgrade-zmk`
@@ -77,7 +77,7 @@ on:
     - cron: "0 22 * * *" # Run daily at 22:00 UTC
 jobs:
   upgrade-zmk:
-    uses: urob/zmk-modules-actions/.github/workflows/upgrade-zmk.yml@v1
+    uses: urob/zmk-actions/.github/workflows/upgrade-zmk.yml@v5
     permissions:
       contents: write
     secrets:
@@ -116,7 +116,7 @@ on:
       - "tests/**"
 jobs:
   test:
-    uses: urob/zmk-modules-actions/.github/workflows/run-tests.yml@v1
+    uses: urob/zmk-actions/.github/workflows/run-tests.yml@v5
 ```
 
 The workflow supports the following optional input parameters:
@@ -139,7 +139,7 @@ on:
       - main
 jobs:
   release:
-    uses: urob/zmk-modules-actions/.github/workflows/upgrade-module.yml@v1
+    uses: urob/zmk-actions/.github/workflows/upgrade-module.yml@v5
     permissions:
       contents: write
 ```
