@@ -44,6 +44,7 @@ jobs:
           echo "ZMK_VERSION=${ZMK_VERSION}" >> $GITHUB_ENV
 
       - name: Bump test dependencies
+        if: env.ZMK_VERSION
         run: |
           yq e -i '(.manifest.projects[] | select(.name=="zmk") | .revision) = env(ZMK_VERSION)' \
             ${{ inputs.west_path }}
