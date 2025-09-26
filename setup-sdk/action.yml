@@ -46,7 +46,7 @@ runs:
         echo "flake_hash=${flake_hash}" >> $GITHUB_ENV
 
     - name: Install nix
-      uses: nixbuild/nix-quick-install-action@v32
+      uses: nixbuild/nix-quick-install-action@v34
       with:
         nix_on_tmpfs: true
 
