@@ -51,7 +51,7 @@ runs:
 
     - name: Archive logs
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ inputs.artefact-name }}
         path: ${{ env.ZMK_BUILD_DIR }}/**/*.log
