@@ -39,7 +39,10 @@ jobs:
 
       - name: Get latest ZMK release
         run: |
-          ZMK_VERSION=$(curl -s https://api.github.com/repos/${{ inputs.upstream }}/releases/latest |
+          ZMK_VERSION=$(curl --silent \
+            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            --header 'content-type: application/json' \
+            --url https://api.github.com/repos/${{ inputs.upstream }}/releases/latest |
             jq -r '.tag_name')
           echo "ZMK_VERSION=${ZMK_VERSION}" >> $GITHUB_ENV
 
