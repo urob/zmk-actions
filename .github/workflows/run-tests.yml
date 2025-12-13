@@ -41,7 +41,7 @@ jobs:
       'docker.io/zmkfirmware/zmk-build-arm:3.5' || null }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up West and Zephyr SDK
         if: ${{ ! inputs.run-in-container }}
