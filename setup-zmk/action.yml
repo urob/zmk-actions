@@ -67,7 +67,8 @@ runs:
       working-directory: ${{ steps.workspace.outputs.workspace }}
       shell: bash
       run: |
-        echo "zephyr-version=${$(west list zephyr --format "{revision}")%%+*}" >> $GITHUB_OUTPUT
+        zephyr_ver=$(west list zephyr --format "{revision}")
+        echo "zephyr-version=${zephyr_ver%%+*}" >> $GITHUB_OUTPUT
 
     - name: Export ZMK source directory
       id: zmkpath
