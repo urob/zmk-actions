@@ -77,7 +77,7 @@ on:
     - cron: "0 22 * * *" # Run daily at 22:00 UTC
 jobs:
   upgrade-zmk:
-    uses: urob/zmk-actions/.github/workflows/upgrade-zmk.yml@v7.0.0
+    uses: urob/zmk-actions/.github/workflows/upgrade-zmk.yml@zephyr-4.1
     permissions:
       contents: write
     secrets:
@@ -116,7 +116,7 @@ on:
       - "tests/**"
 jobs:
   test:
-    uses: urob/zmk-actions/.github/workflows/run-tests.yml@v7.0.0
+    uses: urob/zmk-actions/.github/workflows/run-tests.yml@zephyr-4.1
 ```
 
 The workflow supports the following optional input parameters:
@@ -139,7 +139,7 @@ on:
       - main
 jobs:
   release:
-    uses: urob/zmk-actions/.github/workflows/upgrade-module.yml@v7.0.0
+    uses: urob/zmk-actions/.github/workflows/upgrade-module.yml@zephyr-4.1
     permissions:
       contents: write
 ```

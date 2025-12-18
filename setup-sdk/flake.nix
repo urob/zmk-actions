@@ -1,8 +1,8 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    zephyr-nix.url = "github:urob/zephyr-nix";
+    zephyr-nix.url = "github:urob/zephyr-nix/zephyr-4.1";
     zephyr-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -46,6 +46,10 @@
             };
           };
 
+          # Pin the sdk to 0.16.9 to maximize compatibility across zmk/zephyr versions.
+          # https://docs.google.com/spreadsheets/d/1wzGJLRuR6urTgnDFUqKk7pEB8O6vWu6Sxziw_KROxMA/
+          # Alternatively, we could install west via uv/pip to first run setup-zmk, and then select
+          # the sdk version based on ${{ steps.setup-zmk.outputs.zephyr-version }}.
           zephyr = pkgs.mkShellNoCC {
             packages = cmake ++ pythonSmall ++ [ (zephyr_.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; }) ];
             env = {
