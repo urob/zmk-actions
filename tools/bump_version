@@ -31,4 +31,4 @@ git tag -f ${NEW_VERSION%%.*}
 git checkout main
 
 echo "Done. To push run:"
-echo "git push main ${NEW_VERSION%%.*} && git push --tags"
+echo "git push origin main releases/${NEW_VERSION%%.*} && git push -f --tags"
