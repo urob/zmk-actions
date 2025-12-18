@@ -46,15 +46,19 @@
             };
           };
 
+          # Pin the sdk to 0.16.9 to maximize compatibility across zmk/zephyr versions.
+          # https://docs.google.com/spreadsheets/d/1wzGJLRuR6urTgnDFUqKk7pEB8O6vWu6Sxziw_KROxMA/
+          # Alternatively, we could install west via uv/pip to first run setup-zmk, and then select
+          # the sdk version based on ${{ steps.setup-zmk.outputs.zephyr-version }}.
           zephyr = pkgs.mkShellNoCC {
-            packages = cmake ++ pythonSmall ++ [ (zephyr_.sdk-0_17.override { targets = [ "arm-zephyr-eabi" ]; }) ];
+            packages = cmake ++ pythonSmall ++ [ (zephyr_.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; }) ];
             env = {
               ZEPHYR_TOOLCHAIN_VARIANT = "zephyr";
             };
           };
 
           zephyr-full = pkgs.mkShellNoCC {
-            packages = cmake ++ pythonFull ++ [ (zephyr_.sdk-0_17.override { targets = [ "arm-zephyr-eabi" ]; }) ];
+            packages = cmake ++ pythonFull ++ [ (zephyr_.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; }) ];
             env = {
               ZEPHYR_TOOLCHAIN_VARIANT = "zephyr";
               PYTHONPATH = "${zephyr_.pythonEnv}/${zephyr_.pythonEnv.sitePackages}";

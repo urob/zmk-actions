@@ -109,6 +109,22 @@ jobs:
           echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
           echo "artifact_name=${artifact_name:-${shield:+$shield-}${board//\//_}-zmk}" >> $GITHUB_ENV
 
+      # - name: Check toolchain compatibility
+      #   run: |
+      #     case "${{ inputs.toolchain }}" in
+      #       zephyr | zephyr-full)
+      #         if $(printf '%s\n' "${{ steps.setup-zmk.outputs.zephyr-version }}" "v3.8.0"); then
+      #           echo "You are building an outdated ZMK version, which is no longer supported by this"
+      #           echo "Github Action. To build the firmware for your version, replace `main` in line 10"
+      #           echo "of `.github/workflows/build-nix.yml` with `v6`."
+      #           exit 1
+      #         fi
+      #         ;;
+      #       gnuarmemb)
+      #         # There are no current restrictions.
+      #         ;;
+      #     esac
+
       - name: West Build (${{ env.display_name }})
         working-directory: ${{ steps.setup-zmk.outputs.workspace }}
         shell: sh -x {0}

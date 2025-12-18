@@ -18,9 +18,13 @@ outputs:
     description: "Path to build environment"
     value: ${{ steps.workspace.outputs.workspace }}
 
+  zephyr-version:
+    description: "Version of Zephyr"
+    value: ${{ steps.zephyrversion.outputs.zephyr-version }}
+
   zmk-src-dir:
     description: "Path to zmk/app if detected"
-    value: ${{ steps.export.outputs.zmk-src-dir }}
+    value: ${{ steps.zmkpath.outputs.zmk-src-dir }}
 
 runs:
   using: composite
@@ -58,8 +62,14 @@ runs:
         fi
         west zephyr-export
 
-    - name: Find ZMK source directory
-      id: export
+    - name: Export Zephyr version
+      id: zephyrversion
+      working-directory: ${{ steps.workspace.outputs.workspace }}
+      run: |
+        echo "zephyr-version=${$(west list zephyr --format "{revision}")%%+*}" >> $GITHUB_OUTPUT
+
+    - name: Export ZMK source directory
+      id: zmkpath
       working-directory: ${{ steps.workspace.outputs.workspace }}
       shell: bash
       run: |
