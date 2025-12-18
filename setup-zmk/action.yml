@@ -8,8 +8,11 @@ inputs:
     required: false
     default: "config"
 
+  # Set this to force updating if west.yml is unchanged. This shouldn't
+  # make a difference if dependencies are pinned by commit sha but may
+  # matter when pinning using mutable tags or branches.
   always-update-west:
-    description: "Update west modules on cache hit"
+    description: "Update west modules on cache hits"
     type: boolean
     required: false
 

@@ -9,6 +9,12 @@ on:
         required: false
         default: "tests"
 
+      zmk-version:
+        description: "Version of ZMK to test with (default: read from VERSION)"
+        type: string
+        required: false
+        default: ""
+
       run-in-container:
         description:
           "Run in docker container; the default is to use Nix to set up West and
@@ -44,6 +50,12 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
+
+      - name: Set ZMK version
+        run: |
+          ZMK_VERSION="${{ inputs.zmk-version }}"
+          sed -i 's/<zmk-version>/${ZMK_VERSION:-$(cat VERSION)}"/g' ${{ inputs.test-dir }}/west.yml
+          cat ${{ inputs.test-dir }}/west.yml
 
       - name: Set up West and Zephyr SDK
         if: ${{ ! inputs.run-in-container }}
