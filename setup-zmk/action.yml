@@ -65,6 +65,7 @@ runs:
     - name: Export Zephyr version
       id: zephyrversion
       working-directory: ${{ steps.workspace.outputs.workspace }}
+      shell: bash
       run: |
         echo "zephyr-version=${$(west list zephyr --format "{revision}")%%+*}" >> $GITHUB_OUTPUT
 
