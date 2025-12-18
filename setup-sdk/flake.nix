@@ -1,8 +1,8 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    zephyr-nix.url = "github:urob/zephyr-nix";
+    zephyr-nix.url = "github:urob/zephyr-nix/zephyr-4.1";
     zephyr-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -47,14 +47,14 @@
           };
 
           zephyr = pkgs.mkShellNoCC {
-            packages = cmake ++ pythonSmall ++ [ (zephyr_.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; }) ];
+            packages = cmake ++ pythonSmall ++ [ (zephyr_.sdk-0_17.override { targets = [ "arm-zephyr-eabi" ]; }) ];
             env = {
               ZEPHYR_TOOLCHAIN_VARIANT = "zephyr";
             };
           };
 
           zephyr-full = pkgs.mkShellNoCC {
-            packages = cmake ++ pythonFull ++ [ (zephyr_.sdk-0_16.override { targets = [ "arm-zephyr-eabi" ]; }) ];
+            packages = cmake ++ pythonFull ++ [ (zephyr_.sdk-0_17.override { targets = [ "arm-zephyr-eabi" ]; }) ];
             env = {
               ZEPHYR_TOOLCHAIN_VARIANT = "zephyr";
               PYTHONPATH = "${zephyr_.pythonEnv}/${zephyr_.pythonEnv.sitePackages}";
