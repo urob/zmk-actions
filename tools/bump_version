@@ -29,7 +29,7 @@ fi
 
 git add .
 git commit -m "Bump to $NEW_VERSION"
-git checkout -B releases/${NEW_VERSION%%.*}
+git checkout -B release/${NEW_VERSION%%.*}
 git tag ${NEW_VERSION}
 git tag -f ${NEW_VERSION%.*}
 git tag -f ${NEW_VERSION%%.*}
@@ -37,4 +37,4 @@ git tag -f ${NEW_VERSION%%.*}
 git checkout main
 
 echo "Done. To push run:"
-echo "git push origin main releases/${NEW_VERSION%%.*} && git push -f --tags"
+echo "git push origin main release/${NEW_VERSION%%.*} && git push -f --tags"
