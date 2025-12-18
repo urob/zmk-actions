@@ -6,7 +6,13 @@ if [[ -n $(git status --porcelain) ]]; then
 fi
 
 OLD_VERSION=$(cat VERSION)
-NEW_VERSION="v$1"
+NEW_VERSION="$1"
+
+if [[ $NEW_VERSION != "v"* ]]; then
+    read -p "Version does not start with v. Proceed? [y/N]" answer
+    [[ "$answer" =~ ^[Nn]$ ]] && exit 1
+fi
+
 echo "${NEW_VERSION}" > VERSION
 
 echo "Bumping version from $OLD_VERSION to $NEW_VERSION"
@@ -23,7 +29,7 @@ fi
 
 git add .
 git commit -m "Bump to $NEW_VERSION"
-git checkout -b releases/${NEW_VERSION%%.*}
+git checkout -B releases/${NEW_VERSION%%.*}
 git tag ${NEW_VERSION}
 git tag -f ${NEW_VERSION%.*}
 git tag -f ${NEW_VERSION%%.*}
