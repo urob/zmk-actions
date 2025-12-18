@@ -1,25 +1,36 @@
-# ZMK-ACTIONS
+# ZMK Actions
 
-This repository contains GitHub Actions workflows for automatically testing ZMK modules and
-synchronizing releases with ZMK. The workflows are designed to work in sequence:
+This repository contains several Github actions for ZMK users and developers. It also contains a nix
+shell that can be used as drop-in replacement for the ZMK Docker container, both locally and in
+Github actions.
 
-1. `upgrade-zmk.yml` - Periodically check for new ZMK releases and create PRs to bump module
+## Actions
+
+Actions for building ZMK firmware:
+
+- `build-user-config`: Drop-in replacement for the official docker-based build workflow.
+
+Actions for ZMK module developers:
+
+- `upgrade-zmk`: Check for new ZMK releases and create matching module PRs
    dependencies.
-2. `run-tests.yml` - Run automated module tests on pull requests.
-3. `upgrade-module.yml` - Automatically bump module version to match ZMK version on merge.
+- `run-tests`: Run automated module tests on pull requests.
+- `upgrade-module`: Create module versions to match ZMK version on merge.
 
-The repository also contains lower-level actions for setting up ZMK test and build environments
-using Nix.
+Actions with special purposes and unlikely to be used directly:
 
-Finally, there is a drop-in replacement workflow for `build-user-config` which performs moderately
-faster than the upstream version. For instance, average build times for my personal
-[ZMK config](https://github.com/urob/zmk-config) using the nix-based workflow are 2m52s vs 4m06s
-with a cold cache and 1m29s vs 1m44s with a warm cache.
+- `setup-sdk`: Set up nix shell with Zephyr SDK, `west` and other build dependencies.
+- `setup-zmk`: Create ZMK workspace with all required west modules.
+- `test`: Low-level action supporting `run-tests`.
 
-## How it works
+## Nix shell
 
-These workflows are designed around automated module testing leveraging the same
-`native_posix_64`-based test environment used upstream. To make this work, the test environment is
+Todo: document `flake.nix` and add template for local usage.
+
+## Maintaining ZMK modules
+
+The actions for developers are designed around automated module testing leveraging the same
+`native_posix`-based test environment used upstream. To make this work, the test environment is
 tied to a specific ZMK release.
 
 Whenever a new ZMK release is detected, the `upgrade-zmk` workflow creates a PR to bump the ZMK
