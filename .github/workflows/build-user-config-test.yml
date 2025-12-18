@@ -1,0 +1,195 @@
+name: Build ZMK firmware
+
+on:
+  workflow_call:
+    inputs:
+      build_matrix_path:
+        description: "Path to the build matrix file"
+        default: "build.yaml"
+        required: false
+        type: string
+
+      config_path:
+        description: "Path to the config directory"
+        default: "config"
+        required: false
+        type: string
+
+      fallback_binary:
+        description: "Fallback binary format, if no *.uf2 file was built"
+        default: "bin"
+        required: false
+        type: string
+
+      archive_name:
+        description: "Archive output file name"
+        default: "firmware"
+        required: false
+        type: string
+
+      run-in-container:
+        description:
+          "Run in docker container; the default is to use Nix to set up West and
+          the Zephyr SDK."
+        type: boolean
+        required: false
+
+      toolchain:
+        description: "Toolchain if using nix ('gnuarmemb' or 'zephyr')"
+        type: string
+        required: false
+        default: default
+
+jobs:
+  matrix:
+    runs-on: ubuntu-24.04
+    name: Fetch Build Keyboards
+    outputs:
+      build_matrix: ${{ env.build_matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Fetch Build Matrix
+        run: |
+          echo "build_matrix=$(yq -oj -I0 '${{ inputs.build_matrix_path }}')" >> $GITHUB_ENV
+          yq -oj "${{ inputs.build_matrix_path }}"
+
+  build:
+    runs-on: ubuntu-24.04
+
+    container:
+      ${{ fromJSON(inputs.run-in-container) &&
+      'docker.io/zmkfirmware/zmk-build-arm:3.5' || null }}
+
+    needs: matrix
+
+    name: Build ZMK firmware
+
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.build_matrix) }}
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Workflow meta data
+        run: |
+          echo "${{ github.workflow }}"
+          echo "${{ github.workflow_ref }}"
+          echo "${{ github.workflow_sha }}"
+          echo "${{ github.action_ref }}"
+
+      - name: Set up West and Zephyr SDK
+        if: ${{ ! inputs.run-in-container }}
+        uses: urob/zmk-actions/setup-sdk@main
+        with:
+          toolchain: ${{ inputs.toolchain }}
+
+      - name: Pull in ZMK and Zephyr modules
+        uses: urob/zmk-actions/setup-zmk@main
+        id: setup-zmk
+        with:
+          config: ${{ inputs.config_path }}
+          always-update-west: true
+
+      - name: Prepare variables
+        shell: bash -x {0}
+        env:
+          board: ${{ matrix.board }}
+          shield: ${{ matrix.shield }}
+          artifact_name: ${{ matrix.artifact-name }}
+          snippet: ${{ matrix.snippet }}
+        run: |
+          if [ -e zephyr/module.yml ]; then
+            export zmk_load_arg=" -DZMK_EXTRA_MODULES='${GITHUB_WORKSPACE}'"
+          fi
+
+          if [ -n "${snippet}" ]; then
+            extra_west_args="-S \"${snippet}\""
+          fi
+
+          echo "build_dir=$(mktemp -p ${RUNNER_TEMP} -d build.XXXXXXXXXX)" >> $GITHUB_ENV
+          echo "zmk_src_dir=${{ steps.setup-zmk.outputs.zmk-src-dir }}" >> $GITHUB_ENV
+          echo "extra_west_args=${extra_west_args}" >> $GITHUB_ENV
+          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}${zmk_load_arg}" >> $GITHUB_ENV
+          echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
+          echo "artifact_name=${artifact_name:-${shield:+$shield-}${board//\//_}-zmk}" >> $GITHUB_ENV
+
+      # - name: Check toolchain compatibility
+      #   run: |
+      #     case "${{ inputs.toolchain }}" in
+      #       zephyr | zephyr-full)
+      #         if $(printf '%s\n' "${{ steps.setup-zmk.outputs.zephyr-version }}" "v3.8.0"); then
+      #           echo "You are building an outdated ZMK version, which is no longer supported by this"
+      #           echo "Github Action. To build the firmware for your version, replace `main` in line 10"
+      #           echo "of `.github/workflows/build-nix.yml` with `v6`."
+      #           exit 1
+      #         fi
+      #         ;;
+      #       gnuarmemb)
+      #         # There are no current restrictions.
+      #         ;;
+      #     esac
+
+      - name: West Build (${{ env.display_name }})
+        working-directory: ${{ steps.setup-zmk.outputs.workspace }}
+        shell: sh -x {0}
+        run: |
+          west build -s "${zmk_src_dir}" -d "${{ env.build_dir }}" -b "${{ matrix.board }}" \
+            ${{ env.extra_west_args }} -- -DZMK_CONFIG=$(realpath ${{ inputs.config_path }}) \
+            ${{ env.extra_cmake_args }} ${{ matrix.cmake-args }}
+
+      - name: ${{ env.display_name }} Kconfig file
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -f "${{ env.build_dir }}/zephyr/.config" ]
+          then
+            grep -v -e "^#" -e "^$" "${{ env.build_dir }}/zephyr/.config" | sort
+          else
+            echo "No Kconfig output"
+          fi
+
+      - name: ${{ env.display_name }} Devicetree file
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -f "${{ env.build_dir }}/zephyr/zephyr.dts" ]
+          then
+            cat "${{ env.build_dir }}/zephyr/zephyr.dts"
+          elif [ -f "${{ env.build_dir }}/zephyr/zephyr.dts.pre" ]
+          then
+            cat -s "${{ env.build_dir }}/zephyr/zephyr.dts.pre"
+          else
+            echo "No Devicetree output"
+          fi
+
+      - name: Rename artifacts
+        shell: sh -x {0}
+        run: |
+          mkdir "${{ env.build_dir }}/artifacts"
+          if [ -f "${{ env.build_dir }}/zephyr/zmk.uf2" ]
+          then
+            cp "${{ env.build_dir }}/zephyr/zmk.uf2" "${{ env.build_dir }}/artifacts/${{ env.artifact_name }}.uf2"
+          elif [ -f "${{ env.build_dir }}/zephyr/zmk.${{ inputs.fallback_binary }}" ]
+          then
+            cp "${{ env.build_dir }}/zephyr/zmk.${{ inputs.fallback_binary }}" \
+              "${{ env.build_dir }}/artifacts/${{ env.artifact_name }}.${{ inputs.fallback_binary }}"
+          fi
+
+      - name: Archive (${{ env.display_name }})
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: artifact-${{ env.artifact_name }}
+          path: ${{ env.build_dir }}/artifacts
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    name: Merge Output Artifacts
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: ${{ inputs.archive_name }}
+          pattern: artifact-*
+          delete-merged: true
