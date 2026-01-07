@@ -9,12 +9,6 @@ on:
         required: false
         default: "zmkfirmware/zmk"
 
-      west_path:
-        description: "Path to the west.yml file"
-        type: string
-        required: false
-        default: "tests/west.yml"
-
       pr_branch:
         description: "Branch to push the PR to"
         type: string
@@ -49,8 +43,7 @@ jobs:
       - name: Bump test dependencies
         if: env.ZMK_VERSION != 'null'
         run: |
-          yq e -i '(.manifest.projects[] | select(.name=="zmk") | .revision) = env(ZMK_VERSION)' \
-            ${{ inputs.west_path }}
+          echo "${{ env.ZMK_VERSION }}" >VERSION
 
       - name: Detect changes
         id: changes

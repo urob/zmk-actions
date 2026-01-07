@@ -54,7 +54,9 @@ jobs:
       - name: Set ZMK version
         run: |
           ZMK_VERSION="${{ inputs.zmk-version }}"
-          sed -i 's/<zmk-version>/${ZMK_VERSION:-$(cat VERSION)}"/g' ${{ inputs.test-dir }}/west.yml
+          export ZMK_VERSION=${ZMK_VERSION:-$(cat VERSION)}"
+          yq e -i '(.manifest.projects[] | select(.name=="zmk") | .revision) = env(ZMK_VERSION)' \
+            ${{ inputs.test-dir }}/west.yml
           cat ${{ inputs.test-dir }}/west.yml
 
       - name: Set up West and Zephyr SDK
