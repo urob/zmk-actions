@@ -54,7 +54,7 @@ jobs:
       - name: Set ZMK version
         run: |
           ZMK_VERSION="${{ inputs.zmk-version }}"
-          export ZMK_VERSION=${ZMK_VERSION:-$(cat VERSION)}"
+          export ZMK_VERSION="${ZMK_VERSION:-$(cat VERSION)}"
           yq e -i '(.manifest.projects[] | select(.name=="zmk") | .revision) = env(ZMK_VERSION)' \
             ${{ inputs.test-dir }}/west.yml
           cat ${{ inputs.test-dir }}/west.yml
