@@ -4,7 +4,7 @@ description:
   alongside the workflow.
 
 inputs:
-  artefact-name:
+  artifact-name:
     description: "Name of the uploaded archive"
     type: string
     required: false
@@ -53,5 +53,5 @@ runs:
       if: always()
       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
-        name: ${{ inputs.artefact-name }}
+        name: ${{ inputs.artifact-name }}
         path: ${{ env.ZMK_BUILD_DIR }}/**/*.log
