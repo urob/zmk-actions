@@ -13,7 +13,7 @@ on:
         description: "Branch to push the PR to"
         type: string
         required: false
-        default: "upgrade-zmk"
+        default: "prepare-zmk-release"
 
       pr_label:
         description: "Label to add to the PR"
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Get latest ZMK release
+      - name: Fetch latest ZMK release
         run: |
           ZMK_VERSION=$(curl --silent \
             --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
@@ -40,23 +40,24 @@ jobs:
             jq -r '.tag_name')
           echo "ZMK_VERSION=${ZMK_VERSION}" >> $GITHUB_ENV
 
-      - name: Bump test dependencies
+      - name: Store version
         if: env.ZMK_VERSION != 'null'
         run: |
           echo "${{ env.ZMK_VERSION }}" >VERSION
 
+      # TODO: replace version in readme
+
       - name: Detect changes
         id: changes
-        run:
-          echo "count=$(git status --porcelain=v1 2>/dev/null | wc -l)" >>
-          $GITHUB_OUTPUT
+        run: |
+          echo "count=$(git status --porcelain=v1 2>/dev/null | wc -l)" >>$GITHUB_OUTPUT
 
       - name: Commit & push changes
         if: steps.changes.outputs.count > 0
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git commit -a -m "Bump ZMK to ${ZMK_VERSION}"
+          git commit -a -m "Prepare ZMK release ${ZMK_VERSION}"
           git push -f origin ${{ github.ref_name }}:${{ inputs.pr_branch }}
 
       - name: Open pull request if needed
@@ -69,7 +70,7 @@ jobs:
           PR=$(gh pr list --head ${{ inputs.pr_branch }} --json number -q '.[0].number')
           if [ -z $PR ]; then
             pr_label=${{ inputs.pr_label }}
-            gh pr create --head ${{ inputs.pr_branch }} --title "Bump ZMK to ${ZMK_VERSION}" \
+            gh pr create --head ${{ inputs.pr_branch }} --title "Prepare ZMK release ${ZMK_VERSION}" \
               ${pr_label:+--label "$pr_label"} --body \
               "Full log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
