@@ -39,6 +39,7 @@ jobs:
             --url https://api.github.com/repos/${{ inputs.upstream }}/releases/latest |
             jq -r '.tag_name')
           echo "ZMK_VERSION=${ZMK_VERSION}" >> $GITHUB_ENV
+          echo "ZMK_MINOR_VERSION=${ZMK_VERSION%.*}" >> $GITHUB_ENV
 
       - name: Store version
         if: env.ZMK_VERSION != 'null'
@@ -48,7 +49,7 @@ jobs:
       - name: Update readme
         if: env.ZMK_VERSION != 'null'
         run: |
-          sed -i 's/revision: v[0-9].[0-9] #/revision: ${{ env.ZMK_VERSION }} #/' README.md
+          sed -i 's/revision: v[0-9].[0-9] #/revision: ${{ env.ZMK_MINOR_VERSION }} #/' README.md
 
       - name: Detect changes
         id: changes
