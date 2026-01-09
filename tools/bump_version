@@ -28,7 +28,7 @@ else
 fi
 
 git add .
-git commit -m "Bump to $NEW_VERSION"
+git commit -m "Prepare release $NEW_VERSION"
 git checkout -B release/${NEW_VERSION%%.*}
 git tag ${NEW_VERSION}
 git tag -f ${NEW_VERSION%.*}
