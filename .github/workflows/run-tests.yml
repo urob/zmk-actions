@@ -15,13 +15,6 @@ on:
         required: false
         default: ""
 
-      run-in-container:
-        description:
-          "Run in docker container; the default is to use Nix to set up West and
-          the Zephyr SDK."
-        type: boolean
-        required: false
-
       always-update-west:
         description: "Run west update even on cache hits."
         type: boolean
@@ -42,10 +35,6 @@ jobs:
   run-tests:
     runs-on: ubuntu-24.04
 
-    container:
-      ${{ fromJSON(inputs.run-in-container) &&
-      'docker.io/zmkfirmware/zmk-build-arm:3.5' || null }}
-
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -60,7 +49,6 @@ jobs:
           cat ${{ inputs.test-dir }}/west.yml
 
       - name: Set up West and Zephyr SDK
-        if: ${{ ! inputs.run-in-container }}
         uses: urob/zmk-actions/setup-sdk@v9.2.0
         with:
           toolchain: ${{ inputs.toolchain }}
