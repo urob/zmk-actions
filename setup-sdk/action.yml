@@ -46,9 +46,15 @@ runs:
         echo "flake_hash=${flake_hash}" >> $GITHUB_ENV
 
     - name: Install nix
-      uses: nixbuild/nix-quick-install-action@2c9db80fb984ceb1bcaa77cdda3fdf8cfba92035 # v34
+      uses: cachix/install-nix-action@ab739621df7a23f52766f9ccc97f38da6b7af14f # v31.10.5
       with:
-        nix_on_tmpfs: true
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}  # Work around API limits.
+        extra_nix_config: |
+          accept-flake-config = true
+          keep-env-derivations = true
+          keep-outputs = true
+          substituters = https://cache.nixos.org/ https://nix-community.cachix.org
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPM*QFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
     - name: Cache nix derivations
       uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
