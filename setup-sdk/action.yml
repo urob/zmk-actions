@@ -48,7 +48,6 @@ runs:
     - name: Install nix
       uses: cachix/install-nix-action@ab739621df7a23f52766f9ccc97f38da6b7af14f # v31.10.5
       with:
-        github_access_token: ${{ secrets.GITHUB_TOKEN }}  # Work around API limits.
         extra_nix_config: |
           accept-flake-config = true
           keep-env-derivations = true
