@@ -69,6 +69,10 @@ runs:
         purge-primary-key: never
         gc-max-store-size-linux: 0
 
+    - name: Fix nix temproots permissions
+      shell: bash
+      run: sudo install -dm 1777 /nix/var/nix/temproots
+
     - name: Export devShell
       shell: bash
       run:
