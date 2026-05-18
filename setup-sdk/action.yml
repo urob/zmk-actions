@@ -42,7 +42,7 @@ runs:
         # Manually compute hash because hashFiles doesn't work outside the workspace
         # (https://github.com/actions/toolkit/issues/1035.)
         shopt -s extglob
-        flake_hash=$(sha256sum ${{ env.flake }}/flake.@(nix|lock) | sha256sum | sed 's/[[:blank:]].*//')
+        flake_hash=$(sha256sum ${{ env.flake }}/flake.@(nix|lock) ${{ env.flake }}/action.yml | sha256sum | sed 's/[[:blank:]].*//')
         echo "flake_hash=${flake_hash}" >> $GITHUB_ENV
 
     - name: Install nix
