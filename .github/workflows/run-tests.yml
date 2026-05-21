@@ -15,11 +15,6 @@ on:
         required: false
         default: ""
 
-      always-update-west:
-        description: "Run west update even on cache hits."
-        type: boolean
-        required: false
-
       verbose:
         description: "Show detailed build logs."
         type: boolean
@@ -58,7 +53,7 @@ jobs:
         id: setup-zmk
         with:
           config: ${{ inputs.test-dir }}
-          always-update-west: ${{ inputs.always-update-west }}
+          always-update-west: true
 
       - name: Test
         uses: urob/zmk-actions/test@v11.0.5
