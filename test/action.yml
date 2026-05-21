@@ -34,7 +34,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Export env
+    - name: Export environment variables read by run-test.sh
       shell: bash
       run: |
         echo "ZMK_BUILD_DIR=$(mktemp -p ${RUNNER_TEMP} -d build.XXXXXXXXXX)" >> $GITHUB_ENV
@@ -47,7 +47,9 @@ runs:
     - name: Test
       shell: bash
       working-directory: ${{ inputs.workspace }}
-      run: ${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test-dir }}
+      # run: ${GITHUB_ACTION_PATH}/run-test.sh ${{ inputs.test-dir }}
+      # Use bundled script to ensure compatibility with ZMK version.
+      run: ${{ inputs.zmk-src-dir }}/run-test.sh ${{ inputs.test-dir }}
 
     - name: Archive logs
       if: always()
