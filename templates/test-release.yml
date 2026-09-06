@@ -15,6 +15,9 @@ on:
       - "src/**"
       - "tests/**"
 
+permissions:
+  contents: read # check out the repository
+
 jobs:
   test:
     uses: urob/zmk-actions/.github/workflows/run-tests.yml@v12.2.0

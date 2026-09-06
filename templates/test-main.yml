@@ -17,6 +17,9 @@ on:
   schedule:
     - cron: "0 21 * * 0,3" # Run every Sunday and Wednesday at 21:00 UTC
 
+permissions:
+  contents: read # check out the repository
+
 jobs:
   test:
     uses: urob/zmk-actions/.github/workflows/run-tests.yml@v12.2.0

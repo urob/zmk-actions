@@ -6,6 +6,9 @@ on:
       - config/**
       - build.yaml
 
+permissions:
+  contents: read # check out the repository
+
 jobs:
   build:
     uses: urob/zmk-actions/.github/workflows/build-user-config.yml@main
