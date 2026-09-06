@@ -32,10 +32,10 @@ jobs:
 
       - name: Push tags
         run: |
-          git tag ${{ env.tag }}
+          git tag ${{ env.patch }}
           git tag -f ${{ env.minor }}
           if [ ${{ env.major }} != "v0" ]; then
-            git tag -f ${{ env. major }}
+            git tag -f ${{ env.major }}
           fi
 
           git push -f --tags origin ${{ github.ref_name }}:${{ inputs.release_branch }}
