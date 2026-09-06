@@ -67,12 +67,12 @@ jobs:
           persist-credentials: false
 
       - name: Set up West and Zephyr SDK
-        uses: urob/zmk-actions/setup-sdk@v12.0.1
+        uses: $/setup-sdk
         with:
           toolchain: ${{ inputs.toolchain }}
 
       - name: Pull in ZMK and Zephyr modules
-        uses: urob/zmk-actions/setup-zmk@v12.0.1
+        uses: $/setup-zmk
         id: setup-zmk
         with:
           config: ${{ inputs.config_path }}
