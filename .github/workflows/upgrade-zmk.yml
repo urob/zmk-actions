@@ -30,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Fetch latest ZMK release
         run: |
@@ -68,11 +70,16 @@ jobs:
 
       - name: Commit & push changes
         if: steps.changes.outputs.count > 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git commit -a -m "Prepare ZMK release ${ZMK_VERSION}"
-          git push -f origin ${{ github.ref_name }}:${{ inputs.pr_branch }}
+          # Push with an explicit authenticated URL rather than relying on the
+          # credentials actions/checkout persists in .git/config.
+          git push -f "https://x-access-token:${GH_TOKEN}@${GITHUB_SERVER_URL#https://}/${GITHUB_REPOSITORY}" \
+            ${{ github.ref_name }}:${{ inputs.pr_branch }}
 
       - name: Open pull request if needed
         if: steps.changes.outputs.count > 0
